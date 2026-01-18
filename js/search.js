@@ -570,6 +570,11 @@ class LeasingSearchApp {
             displayItem = this.documentPages[this.currentPageIndex] || currentItem;
         }
         
+        console.log('🖼️ updateImageViewer:');
+        console.log('  currentPageIndex:', this.currentPageIndex);
+        console.log('  displayItem.pageNum:', displayItem.pageNum);
+        console.log('  displayItem.pageImageUrl:', displayItem.pageImageUrl?.substring(0, 100) + '...');
+        
         // 기본 정보 업데이트
         const title = `${displayItem.buildingName} - ${displayItem.floor}`;
         const info = `출처: ${displayItem.source} | 발행: ${displayItem.publishDate}`;
@@ -641,9 +646,13 @@ class LeasingSearchApp {
         console.log('  currentPageIndex:', this.currentPageIndex);
         
         if (this.currentPageIndex > 0 && this.documentPages.length > 1) {
+            const beforePage = this.documentPages[this.currentPageIndex];
             this.currentPageIndex--;
-            console.log('  → Moving to page index:', this.currentPageIndex);
-            console.log('  → Page item:', this.documentPages[this.currentPageIndex]);
+            const afterPage = this.documentPages[this.currentPageIndex];
+            
+            console.log('  BEFORE - pageNum:', beforePage?.pageNum, 'URL:', beforePage?.pageImageUrl?.slice(-30));
+            console.log('  AFTER  - pageNum:', afterPage?.pageNum, 'URL:', afterPage?.pageImageUrl?.slice(-30));
+            
             this.updateImageViewer();
         } else {
             console.log('  → Cannot move: at first page or only 1 page');
@@ -657,9 +666,13 @@ class LeasingSearchApp {
         console.log('  currentPageIndex:', this.currentPageIndex);
         
         if (this.currentPageIndex < this.documentPages.length - 1 && this.documentPages.length > 1) {
+            const beforePage = this.documentPages[this.currentPageIndex];
             this.currentPageIndex++;
-            console.log('  → Moving to page index:', this.currentPageIndex);
-            console.log('  → Page item:', this.documentPages[this.currentPageIndex]);
+            const afterPage = this.documentPages[this.currentPageIndex];
+            
+            console.log('  BEFORE - pageNum:', beforePage?.pageNum, 'URL:', beforePage?.pageImageUrl?.slice(-30));
+            console.log('  AFTER  - pageNum:', afterPage?.pageNum, 'URL:', afterPage?.pageImageUrl?.slice(-30));
+            
             this.updateImageViewer();
         } else {
             console.log('  → Cannot move: at last page or only 1 page');
