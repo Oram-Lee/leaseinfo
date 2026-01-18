@@ -532,7 +532,7 @@ class LeasingSearchApp {
         if (checkbox) checkbox.checked = false;
     }
     
-    showImageViewer(imageUrl, title, info, itemId = null) {
+    async showImageViewer(imageUrl, title, info, itemId = null) {
         // 이미지가 있는 항목들 필터링
         this.viewableItems = this.currentResults.filter(item => item.pageImageUrl);
         
@@ -544,10 +544,11 @@ class LeasingSearchApp {
         // 현재 항목
         const currentItem = this.viewableItems[this.currentViewIndex];
         
-        // 같은 documentId를 가진 항목들의 페이지 목록 생성
+        // 같은 documentId를 가진 항목들의 페이지 목록 생성 (전체 데이터에서)
         if (currentItem && currentItem.documentId) {
-            this.documentPages = this.getDocumentPages(currentItem.documentId);
+            this.documentPages = await FirebaseService.getDocumentPages(currentItem.documentId);
             this.currentPageIndex = this.documentPages.findIndex(p => p.pageNum === currentItem.pageNum);
+            if (this.currentPageIndex < 0) this.currentPageIndex = 0;
         } else {
             this.documentPages = [];
             this.currentPageIndex = 0;
@@ -559,48 +560,32 @@ class LeasingSearchApp {
         modal.show();
     }
     
-    // 같은 documentId를 가진 모든 페이지 가져오기
-    getDocumentPages(documentId) {
-        // 전체 데이터에서 같은 documentId를 가진 항목들 찾기
-        const allData = this.currentResults.length > 0 ? this.currentResults : [];
-        
-        const pages = allData
-            .filter(item => item.documentId === documentId && item.pageImageUrl)
-            .sort((a, b) => (a.pageNum || 0) - (b.pageNum || 0));
-        
-        // 중복 pageNum 제거
-        const uniquePages = [];
-        const seenPageNums = new Set();
-        pages.forEach(p => {
-            if (!seenPageNums.has(p.pageNum)) {
-                seenPageNums.add(p.pageNum);
-                uniquePages.push(p);
-            }
-        });
-        
-        return uniquePages;
-    }
-    
     updateImageViewer() {
         const currentItem = this.viewableItems[this.currentViewIndex];
         if (!currentItem) return;
         
+        // 현재 페이지 정보 (documentPages에서)
+        let displayItem = currentItem;
+        if (this.documentPages.length > 0 && this.currentPageIndex >= 0) {
+            displayItem = this.documentPages[this.currentPageIndex] || currentItem;
+        }
+        
         // 기본 정보 업데이트
-        const title = `${currentItem.buildingName} - ${currentItem.floor}`;
-        const info = `출처: ${currentItem.source} | 발행: ${currentItem.publishDate}`;
+        const title = `${displayItem.buildingName} - ${displayItem.floor}`;
+        const info = `출처: ${displayItem.source} | 발행: ${displayItem.publishDate}`;
         
         document.getElementById('imageViewerTitle').textContent = title;
-        document.getElementById('imageViewerImg').src = currentItem.pageImageUrl;
+        document.getElementById('imageViewerImg').src = displayItem.pageImageUrl;
         document.getElementById('imageViewerInfo').textContent = info;
-        document.getElementById('imageViewerDownload').href = currentItem.pageImageUrl;
+        document.getElementById('imageViewerDownload').href = displayItem.pageImageUrl;
         
         // 페이지 정보 표시
         const pageInfoEl = document.getElementById('imageViewerPageInfo');
         if (this.documentPages.length > 1) {
-            pageInfoEl.textContent = `${currentItem.source} ${this.currentPageIndex + 1}/${this.documentPages.length}페이지`;
+            pageInfoEl.textContent = `${displayItem.source} ${this.currentPageIndex + 1}/${this.documentPages.length}페이지`;
             pageInfoEl.style.display = 'inline';
         } else {
-            pageInfoEl.textContent = `${currentItem.source}`;
+            pageInfoEl.textContent = `${displayItem.source}`;
             pageInfoEl.style.display = 'inline';
         }
         
@@ -653,14 +638,6 @@ class LeasingSearchApp {
     showPrevPage() {
         if (this.currentPageIndex > 0 && this.documentPages.length > 1) {
             this.currentPageIndex--;
-            const pageItem = this.documentPages[this.currentPageIndex];
-            
-            // currentViewIndex도 해당 항목으로 업데이트
-            const newIndex = this.viewableItems.findIndex(item => item.id === pageItem.id);
-            if (newIndex >= 0) {
-                this.currentViewIndex = newIndex;
-            }
-            
             this.updateImageViewer();
         }
     }
@@ -669,29 +646,24 @@ class LeasingSearchApp {
     showNextPage() {
         if (this.currentPageIndex < this.documentPages.length - 1 && this.documentPages.length > 1) {
             this.currentPageIndex++;
-            const pageItem = this.documentPages[this.currentPageIndex];
-            
-            // currentViewIndex도 해당 항목으로 업데이트
-            const newIndex = this.viewableItems.findIndex(item => item.id === pageItem.id);
-            if (newIndex >= 0) {
-                this.currentViewIndex = newIndex;
-            }
-            
             this.updateImageViewer();
         }
     }
     
     // 검색 결과의 이전 항목
-    showPrevItem() {
+    async showPrevItem() {
         if (this.currentViewIndex > 0) {
             this.currentViewIndex--;
             const currentItem = this.viewableItems[this.currentViewIndex];
             
             // 새 문서의 페이지 목록 갱신
             if (currentItem && currentItem.documentId) {
-                this.documentPages = this.getDocumentPages(currentItem.documentId);
+                this.documentPages = await FirebaseService.getDocumentPages(currentItem.documentId);
                 this.currentPageIndex = this.documentPages.findIndex(p => p.pageNum === currentItem.pageNum);
                 if (this.currentPageIndex < 0) this.currentPageIndex = 0;
+            } else {
+                this.documentPages = [];
+                this.currentPageIndex = 0;
             }
             
             this.updateImageViewer();
@@ -699,16 +671,19 @@ class LeasingSearchApp {
     }
     
     // 검색 결과의 다음 항목
-    showNextItem() {
+    async showNextItem() {
         if (this.currentViewIndex < this.viewableItems.length - 1) {
             this.currentViewIndex++;
             const currentItem = this.viewableItems[this.currentViewIndex];
             
             // 새 문서의 페이지 목록 갱신
             if (currentItem && currentItem.documentId) {
-                this.documentPages = this.getDocumentPages(currentItem.documentId);
+                this.documentPages = await FirebaseService.getDocumentPages(currentItem.documentId);
                 this.currentPageIndex = this.documentPages.findIndex(p => p.pageNum === currentItem.pageNum);
                 if (this.currentPageIndex < 0) this.currentPageIndex = 0;
+            } else {
+                this.documentPages = [];
+                this.currentPageIndex = 0;
             }
             
             this.updateImageViewer();

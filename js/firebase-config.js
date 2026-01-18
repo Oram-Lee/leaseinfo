@@ -284,6 +284,32 @@ async function getSourceList() {
 }
 
 /**
+ * 같은 documentId를 가진 모든 페이지 가져오기
+ */
+async function getDocumentPages(documentId) {
+    if (!documentId) return [];
+    
+    const allData = await loadMergedData();
+    
+    const pages = allData
+        .filter(item => item.documentId === documentId && item.pageImageUrl)
+        .sort((a, b) => (a.pageNum || 0) - (b.pageNum || 0));
+    
+    // 중복 pageNum 제거
+    const uniquePages = [];
+    const seenPageNums = new Set();
+    pages.forEach(p => {
+        if (!seenPageNums.has(p.pageNum)) {
+            seenPageNums.add(p.pageNum);
+            uniquePages.push(p);
+        }
+    });
+    
+    console.log(`📄 Document ${documentId}: ${uniquePages.length} pages found`);
+    return uniquePages;
+}
+
+/**
  * 마지막 업데이트 시간 가져오기
  */
 async function getLastUpdateTime() {
@@ -322,7 +348,8 @@ window.FirebaseService = {
     getDistrictSuggestions,
     getStationSuggestions,
     getSourceList,
-    getLastUpdateTime
+    getLastUpdateTime,
+    getDocumentPages
 };
 
 console.log('🔥 Firebase Service initialized');
