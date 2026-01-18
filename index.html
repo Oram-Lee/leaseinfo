@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>임대안내문 통합검색</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    
+    <!-- Pretendard Font -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    
+    <!-- Kakao Map -->
+    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=1ac6eee9b1e4c2e0cc6f1d1ca1a6a559&libraries=services"></script>
+    
+    <style>
+        /* 기본 폰트 설정 */
+        body, button, input, select, textarea {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+        }
+        /* 선택된 빌딩 태그 - 진한 핑크색 */
+        .selected-building-tag {
+            display: inline-block;
+            background: #ff1493;
+            color: white;
+            padding: 5px 12px;
+            margin: 2px;
+            border-radius: 15px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(255, 20, 147, 0.3);
+            transition: all 0.2s ease;
+        }
+        
+        .selected-building-tag:hover {
+            background: #ff69b4;
+            box-shadow: 0 3px 6px rgba(255, 20, 147, 0.4);
+        }
+        
+        .selected-building-tag button {
+            background: none;
+            border: none;
+            color: white;
+            margin-left: 8px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+        
+        .selected-building-tag button:hover {
+            opacity: 1;
+        }
+        
+        /* 선택된 빌딩 섹션 카드 스타일 */
+        #selectedBuildingsSection .card {
+            border-color: #ff1493 !important;
+            background-color: #fff0f5;
+        }
+        
+        #selectedBuildingsSection .card-title {
+            color: #ff1493;
+        }
+        
+        #selectedBuildingsSection .badge {
+            background-color: #ff1493 !important;
+        }
+        
+        #showSelectedMap {
+            background-color: #ff1493;
+            border-color: #ff1493;
+        }
+        
+        #showSelectedMap:hover {
+            background-color: #ff69b4;
+            border-color: #ff69b4;
+        }
+        
+        .suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ced4da;
+            border-top: none;
+            border-radius: 0 0 0.375rem 0.375rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1050;
+            display: none;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .suggestions.show {
+            display: block;
+        }
+        
+        .suggestion-item {
+            padding: 10px 14px;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f3f4;
+            transition: background-color 0.15s;
+        }
+        
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+        
+        .suggestion-item:hover,
+        .suggestion-item:active,
+        .suggestion-item.active {
+            background-color: #e9f3ff;
+        }
+        
+        .suggestion-text {
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .suggestion-subtext {
+            display: block;
+            margin-top: 2px;
+            font-size: 12px;
+        }
+        
+        /* 모바일에서 자동완성 개선 */
+        @media (max-width: 768px) {
+            .suggestions {
+                max-height: 250px;
+                font-size: 15px;
+            }
+            
+            .suggestion-item {
+                padding: 12px 14px;
+            }
+        }
+        
+        /* 이미지 뷰어 네비게이션 버튼 */
+        #prevPageBtn, #nextPageBtn {
+            opacity: 0.8;
+            transition: all 0.2s;
+        }
+        
+        #prevPageBtn:hover, #nextPageBtn:hover {
+            opacity: 1;
+            transform: translateY(-50%) scale(1.1);
+        }
+        
+        #prevPageBtn:disabled, #nextPageBtn:disabled {
+            cursor: not-allowed;
+        }
+        
+        /* 하단 항목 네비게이션 */
+        #prevItemBtn, #nextItemBtn {
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        
+        #prevItemBtn:hover:not(:disabled), #nextItemBtn:hover:not(:disabled) {
+            background-color: #e9ecef;
+        }
+        
+        #prevItemBtn:disabled, #nextItemBtn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        #prevItemInfo, #nextItemInfo {
+            font-size: 11px;
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        /* 모바일에서 네비게이션 버튼 크기 조정 */
+        @media (max-width: 768px) {
+            #prevPageBtn, #nextPageBtn {
+                width: 40px !important;
+                height: 40px !important;
+            }
+            
+            #prevPageBtn i, #nextPageBtn i {
+                font-size: 1.2rem !important;
+            }
+            
+            #prevItemBtn, #nextItemBtn {
+                min-width: 40% !important;
+                font-size: 12px;
+            }
+            
+            #prevItemInfo, #nextItemInfo {
+                max-width: 100px;
+            }
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        /* 출처 배지 스타일 */
+        .source-badge {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 10px;
+        }
+        
+        .source-badge.에스원 { background-color: #0d6efd; color: white; }
+        .source-badge.에스앤아이코퍼레이션 { background-color: #198754; color: white; }
+        .source-badge.Colliers { background-color: #dc3545; color: white; }
+        .source-badge.한화 { background-color: #fd7e14; color: white; }
+        .source-badge.알스퀘어 { background-color: #6f42c1; color: white; }
+        .source-badge.교보 { background-color: #20c997; color: white; }
+        .source-badge.오스카 { background-color: #e83e8c; color: white; }
+        
+        /* ===== 모바일 반응형 카드 스타일 ===== */
+        @media (max-width: 768px) {
+            .table-responsive {
+                overflow-x: visible;
+            }
+            
+            #resultsTable thead {
+                display: none;
+            }
+            
+            #resultsTable tbody {
+                display: block;
+            }
+            
+            #resultsTable tbody tr {
+                display: block;
+                margin-bottom: 15px;
+                border: 1px solid #dee2e6;
+                border-radius: 8px;
+                background: white;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                overflow: hidden;
+                position: relative;
+                padding: 0;
+            }
+            
+            #resultsTable tbody tr:hover {
+                box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            }
+            
+            #resultsTable tbody td {
+                display: block;
+                text-align: left !important;
+                border: none;
+                padding: 8px 15px;
+                position: relative;
+            }
+            
+            /* 체크박스 - 카드 우측 상단 */
+            #resultsTable tbody td:first-child {
+                position: absolute;
+                top: 15px;
+                right: 15px;
+                width: auto;
+                padding: 0;
+                z-index: 1;
+            }
+            
+            #resultsTable tbody td:first-child input[type="checkbox"] {
+                width: 20px;
+                height: 20px;
+            }
+            
+            /* 빌딩명 - 카드 헤더 */
+            #resultsTable tbody td:nth-child(2) {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                font-weight: 600;
+                font-size: 16px;
+                padding: 15px 50px 15px 15px;
+                margin-bottom: 5px;
+            }
+            
+            #resultsTable tbody td:nth-child(2)::before {
+                content: '🏢 ';
+                font-size: 18px;
+            }
+            
+            /* 각 필드에 라벨 추가 */
+            #resultsTable tbody td:nth-child(3)::before {
+                content: '📍 주소: ';
+                font-weight: 600;
+                color: #6c757d;
+                display: inline-block;
+                min-width: 80px;
+            }
+            
+            #resultsTable tbody td:nth-child(4)::before {
+                content: '🚇 인근역: ';
+                font-weight: 600;
+                color: #6c757d;
+                display: inline-block;
+                min-width: 80px;
+            }
+            
+            #resultsTable tbody td:nth-child(5)::before {
+                content: '🏢 공실층: ';
+                font-weight: 600;
+                color: #6c757d;
+                display: inline-block;
+                min-width: 80px;
+            }
+            
+            #resultsTable tbody td:nth-child(6)::before {
+                content: '📐 전용면적: ';
+                font-weight: 600;
+                color: #6c757d;
+                display: inline-block;
+                min-width: 80px;
+            }
+            
+            #resultsTable tbody td:nth-child(7)::before {
+                content: '📏 임대면적: ';
+                font-weight: 600;
+                color: #6c757d;
+                display: inline-block;
+                min-width: 80px;
+            }
+            
+            /* 출처 */
+            #resultsTable tbody td:nth-child(8) {
+                position: absolute;
+                bottom: 12px;
+                left: 15px;
+                background: none;
+                color: #6c757d;
+                padding: 0;
+                font-size: 11px;
+                width: auto;
+                margin: 0;
+            }
+            
+            #resultsTable tbody td:nth-child(8)::before {
+                content: '출처: ';
+                font-weight: 600;
+            }
+            
+            /* 액션 버튼 - 카드 하단 */
+            #resultsTable tbody td:nth-child(9) {
+                padding: 12px 15px 12px 80px;
+                background: #f8f9fa;
+                border-top: 1px solid #dee2e6;
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+                justify-content: flex-end;
+                margin-top: 5px;
+            }
+            
+            #resultsTable tbody td:nth-child(9) .btn {
+                flex: 1;
+                min-width: calc(50% - 4px);
+                font-size: 13px;
+                padding: 8px 10px;
+            }
+            
+            /* 빈 상태 메시지 */
+            #resultsTable tbody tr td[colspan] {
+                display: block !important;
+                text-align: center !important;
+                padding: 40px 20px !important;
+            }
+        }
+        
+        /* 태블릿 최적화 */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            #resultsTable {
+                font-size: 14px;
+            }
+            
+            #resultsTable th,
+            #resultsTable td {
+                padding: 8px 6px;
+            }
+            
+            #resultsTable tbody td:nth-child(9) .btn {
+                font-size: 12px;
+                padding: 6px 8px;
+            }
+        }
+        
+        /* 모바일 검색 조건 개선 */
+        @media (max-width: 768px) {
+            .card-title {
+                font-size: 18px;
+            }
+            
+            .search-input input,
+            .search-input select {
+                font-size: 16px;
+            }
+            
+            .btn-primary,
+            .btn-outline-secondary {
+                width: 100%;
+                margin-top: 10px;
+            }
+            
+            #selectedBuildingsList {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            
+            .selected-building-tag {
+                font-size: 13px;
+                padding: 6px 12px;
+            }
+            
+            .pagination {
+                flex-wrap: wrap;
+                gap: 5px;
+            }
+            
+            .pagination .page-item {
+                margin: 0;
+            }
+            
+            .pagination .page-link {
+                padding: 6px 10px;
+                font-size: 14px;
+            }
+        }
+        
+        /* 작은 모바일 (375px 이하) */
+        @media (max-width: 375px) {
+            #resultsTable tbody td:nth-child(2) {
+                font-size: 15px;
+                padding: 12px 45px 12px 12px;
+            }
+            
+            #resultsTable tbody td:nth-child(9) {
+                padding: 12px 15px;
+                flex-direction: column;
+            }
+            
+            #resultsTable tbody td:nth-child(8) {
+                position: relative;
+                bottom: auto;
+                left: auto;
+                padding: 8px 15px;
+                font-size: 11px;
+                order: -1;
+            }
+            
+            #resultsTable tbody td:nth-child(9) .btn {
+                min-width: 100%;
+                font-size: 12px;
+            }
+            
+            .selected-building-tag {
+                font-size: 12px;
+                padding: 5px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-building"></i> 임대정보 통합검색
+            </a>
+            <span class="navbar-text text-white">
+                <small id="lastUpdated">Loading...</small>
+            </span>
+        </div>
+    </nav>
+
+    <!-- Search Section -->
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title mb-4">
+                            <i class="bi bi-search"></i> 검색 조건
+                        </h5>
+                        
+                        <!-- Search Type Selection -->
+                        <div class="row mb-3">
+                            <div class="col-md-2">
+                                <label class="form-label">검색 유형</label>
+                                <select class="form-select" id="searchType">
+                                    <option value="building">빌딩명</option>
+                                    <option value="district">지역명</option>
+                                    <option value="station">역명</option>
+                                    <option value="area">임대조건</option>
+                                    <option value="complex">복합검색</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Building Name Search -->
+                            <div class="col-md-10 search-input" id="buildingSearch">
+                                <label class="form-label">빌딩명</label>
+                                <div class="position-relative">
+                                    <input type="text" class="form-control" id="buildingName" 
+                                           placeholder="빌딩명을 입력하세요" autocomplete="off">
+                                    <div id="buildingSuggestions" class="suggestions"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- District Search -->
+                            <div class="col-md-10 search-input d-none" id="districtSearch">
+                                <label class="form-label">지역명</label>
+                                <div class="row">
+                                    <div class="col-md-6 position-relative">
+                                        <input type="text" class="form-control" id="districtName" 
+                                               placeholder="구, 동, 또는 주소 일부" autocomplete="off">
+                                        <div id="districtSuggestions" class="suggestions"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Station Search -->
+                            <div class="col-md-10 search-input d-none" id="stationSearch">
+                                <label class="form-label">역명</label>
+                                <div class="row">
+                                    <div class="col-md-6 position-relative">
+                                        <input type="text" class="form-control" id="stationName" 
+                                               placeholder="역 이름" autocomplete="off">
+                                        <div id="stationSuggestions" class="suggestions"></div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="number" class="form-control" id="walkingTime" 
+                                               placeholder="도보시간(분)" min="1" max="30">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Area Search -->
+                            <div class="col-md-10 search-input d-none" id="areaSearch">
+                                <label class="form-label">임대조건</label>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <label class="form-label">공실 전용면적 (평)</label>
+                                        <div class="input-group">
+                                            <input type="number" class="form-control" id="vacancyAreaFrom" placeholder="최소">
+                                            <span class="input-group-text">~</span>
+                                            <input type="number" class="form-control" id="vacancyAreaTo" placeholder="최대">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Complex Search -->
+                            <div class="col-md-10 search-input d-none" id="complexSearch">
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle"></i> 복합검색에서는 모든 검색 조건을 함께 사용할 수 있습니다.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Search Button -->
+                        <div class="row">
+                            <div class="col-12">
+                                <button class="btn btn-primary btn-lg" id="searchBtn">
+                                    <i class="bi bi-search"></i> 검색
+                                </button>
+                                <button class="btn btn-outline-secondary" id="resetBtn">
+                                    <i class="bi bi-arrow-clockwise"></i> 초기화
+                                </button>
+                                <button class="btn btn-outline-info" id="loadAllBtn">
+                                    <i class="bi bi-list-ul"></i> 전체 보기
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Selected Buildings -->
+        <div class="row mt-3 d-none" id="selectedBuildingsSection">
+            <div class="col-12">
+                <div class="card shadow-sm border-success">
+                    <div class="card-body">
+                        <h6 class="card-title">
+                            <i class="bi bi-check-square"></i> 선택된 빌딩 
+                            <span class="badge bg-success" id="selectedCount">0</span>
+                        </h6>
+                        <div id="selectedBuildingsList" class="mb-2"></div>
+                        <button class="btn btn-success btn-sm" id="showSelectedMap">
+                            <i class="bi bi-map"></i> 선택빌딩 지도보기
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-list-ul"></i> 검색 결과 
+                                <span class="badge bg-primary" id="resultCount">0</span>
+                            </h5>
+                            <div class="d-flex align-items-center">
+                                <label class="me-2">표시 개수:</label>
+                                <select class="form-select form-select-sm" id="pageSize" style="width: auto;">
+                                    <option value="20">20개</option>
+                                    <option value="50">50개</option>
+                                    <option value="100">100개</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Results Table -->
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle" id="resultsTable">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th width="50">선택</th>
+                                        <th>빌딩명</th>
+                                        <th>주소</th>
+                                        <th>인근역</th>
+                                        <th>공실층</th>
+                                        <th>전용면적(평)</th>
+                                        <th>임대면적(평)</th>
+                                        <th>출처</th>
+                                        <th width="150">액션</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="resultsBody">
+                                    <tr>
+                                        <td colspan="9" class="text-center text-muted py-5">
+                                            <i class="bi bi-search fs-1 d-block mb-2"></i>
+                                            검색 조건을 입력하고 검색 버튼을 클릭하세요.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Pagination -->
+                        <nav>
+                            <ul class="pagination justify-content-center" id="pagination">
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Viewer Modal -->
+    <div class="modal fade" id="imageViewerModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="imageViewerTitle">임대안내문</h5>
+                    <div class="ms-auto me-3">
+                        <span class="badge bg-secondary" id="imageViewerPageInfo">페이지 1</span>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center p-0 position-relative" style="max-height: 75vh; overflow: auto;">
+                    <!-- 이전 페이지 버튼 -->
+                    <button class="btn btn-light position-absolute start-0 top-50 translate-middle-y ms-2 rounded-circle shadow" 
+                            id="prevPageBtn" style="z-index: 10; width: 50px; height: 50px;" title="이전 페이지">
+                        <i class="bi bi-chevron-left fs-4"></i>
+                    </button>
+                    
+                    <img id="imageViewerImg" src="" alt="임대안내문" style="max-width: 100%; height: auto;">
+                    
+                    <!-- 다음 페이지 버튼 -->
+                    <button class="btn btn-light position-absolute end-0 top-50 translate-middle-y me-2 rounded-circle shadow" 
+                            id="nextPageBtn" style="z-index: 10; width: 50px; height: 50px;" title="다음 페이지">
+                        <i class="bi bi-chevron-right fs-4"></i>
+                    </button>
+                </div>
+                
+                <!-- 이전/다음 항목 네비게이션 -->
+                <div class="d-flex justify-content-between align-items-center px-3 py-2 bg-light border-top" id="itemNavigation">
+                    <button class="btn btn-sm btn-outline-secondary text-start" id="prevItemBtn" style="min-width: 45%;">
+                        <i class="bi bi-caret-left-fill"></i> 이전
+                        <small class="d-block text-muted" id="prevItemInfo">-</small>
+                    </button>
+                    <span class="badge bg-primary" id="itemIndexBadge">1 / 10</span>
+                    <button class="btn btn-sm btn-outline-secondary text-end" id="nextItemBtn" style="min-width: 45%;">
+                        다음 <i class="bi bi-caret-right-fill"></i>
+                        <small class="d-block text-muted" id="nextItemInfo">-</small>
+                    </button>
+                </div>
+                
+                <div class="modal-footer">
+                    <span class="text-muted me-auto" id="imageViewerInfo"></span>
+                    <a href="#" class="btn btn-primary" id="imageViewerDownload" download>
+                        <i class="bi bi-download"></i> 다운로드
+                    </a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Map Modal -->
+    <div class="modal fade" id="mapModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="mapModalTitle">빌딩 위치</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div id="mapContainer" style="width: 100%; height: 500px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div class="loading-overlay d-none" id="loadingOverlay">
+        <div class="text-center">
+            <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <div class="text-white" id="loadingText">데이터를 불러오는 중...</div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <!-- App Scripts -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/search.js"></script>
+    <script src="js/map.js"></script>
+</body>
+</html>
