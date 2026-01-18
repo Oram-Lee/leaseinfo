@@ -636,17 +636,33 @@ class LeasingSearchApp {
     
     // 같은 문서의 이전 페이지
     showPrevPage() {
+        console.log('◀ Prev Page clicked');
+        console.log('  documentPages.length:', this.documentPages.length);
+        console.log('  currentPageIndex:', this.currentPageIndex);
+        
         if (this.currentPageIndex > 0 && this.documentPages.length > 1) {
             this.currentPageIndex--;
+            console.log('  → Moving to page index:', this.currentPageIndex);
+            console.log('  → Page item:', this.documentPages[this.currentPageIndex]);
             this.updateImageViewer();
+        } else {
+            console.log('  → Cannot move: at first page or only 1 page');
         }
     }
     
     // 같은 문서의 다음 페이지
     showNextPage() {
+        console.log('▶ Next Page clicked');
+        console.log('  documentPages.length:', this.documentPages.length);
+        console.log('  currentPageIndex:', this.currentPageIndex);
+        
         if (this.currentPageIndex < this.documentPages.length - 1 && this.documentPages.length > 1) {
             this.currentPageIndex++;
+            console.log('  → Moving to page index:', this.currentPageIndex);
+            console.log('  → Page item:', this.documentPages[this.currentPageIndex]);
             this.updateImageViewer();
+        } else {
+            console.log('  → Cannot move: at last page or only 1 page');
         }
     }
     
