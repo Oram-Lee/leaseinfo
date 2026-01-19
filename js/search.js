@@ -10,8 +10,7 @@ class LeasingSearchApp {
         this.isLoading = false;
         this.currentViewIndex = -1; // 현재 보고 있는 항목 인덱스
         this.viewableItems = []; // 이미지가 있는 항목들
-        this.documentPages = []; // 같은 문서의 페이지들
-        this.currentPageIndex = 0; // 현재 문서 내 페이지 인덱스
+        this.currentDisplayPageNum = 1; // 현재 표시 중인 페이지 번호
         
         this.init();
     }
@@ -544,15 +543,8 @@ class LeasingSearchApp {
         // 현재 항목
         const currentItem = this.viewableItems[this.currentViewIndex];
         
-        // 같은 documentId를 가진 항목들의 페이지 목록 생성 (전체 데이터에서)
-        if (currentItem && currentItem.documentId) {
-            this.documentPages = await FirebaseService.getDocumentPages(currentItem.documentId);
-            this.currentPageIndex = this.documentPages.findIndex(p => p.pageNum === currentItem.pageNum);
-            if (this.currentPageIndex < 0) this.currentPageIndex = 0;
-        } else {
-            this.documentPages = [];
-            this.currentPageIndex = 0;
-        }
+        // 현재 표시 중인 페이지 번호 초기화
+        this.currentDisplayPageNum = currentItem?.pageNum || 1;
         
         this.updateImageViewer();
         
@@ -564,45 +556,31 @@ class LeasingSearchApp {
         const currentItem = this.viewableItems[this.currentViewIndex];
         if (!currentItem) return;
         
-        // 현재 페이지 정보 (documentPages에서)
-        let displayItem = currentItem;
-        if (this.documentPages.length > 0 && this.currentPageIndex >= 0) {
-            displayItem = this.documentPages[this.currentPageIndex] || currentItem;
-        }
-        
-        console.log('🖼️ updateImageViewer:');
-        console.log('  currentPageIndex:', this.currentPageIndex);
-        console.log('  displayItem.pageNum:', displayItem.pageNum);
-        console.log('  displayItem.pageImageUrl:', displayItem.pageImageUrl?.substring(0, 100) + '...');
-        
         // 기본 정보 업데이트
-        const title = `${displayItem.buildingName} - ${displayItem.floor}`;
-        const info = `출처: ${displayItem.source} | 발행: ${displayItem.publishDate}`;
+        const title = `${currentItem.buildingName} - ${currentItem.floor}`;
+        const info = `출처: ${currentItem.source} | 발행: ${currentItem.publishDate}`;
         
         document.getElementById('imageViewerTitle').textContent = title;
-        document.getElementById('imageViewerImg').src = displayItem.pageImageUrl;
+        document.getElementById('imageViewerImg').src = currentItem.pageImageUrl;
         document.getElementById('imageViewerInfo').textContent = info;
-        document.getElementById('imageViewerDownload').href = displayItem.pageImageUrl;
+        document.getElementById('imageViewerDownload').href = currentItem.pageImageUrl;
+        
+        // 현재 표시 페이지 번호 설정
+        this.currentDisplayPageNum = currentItem.pageNum;
         
         // 페이지 정보 표시
         const pageInfoEl = document.getElementById('imageViewerPageInfo');
-        if (this.documentPages.length > 1) {
-            pageInfoEl.textContent = `${displayItem.source} ${this.currentPageIndex + 1}/${this.documentPages.length}페이지`;
-            pageInfoEl.style.display = 'inline';
-        } else {
-            pageInfoEl.textContent = `${displayItem.source}`;
-            pageInfoEl.style.display = 'inline';
-        }
+        pageInfoEl.textContent = `${currentItem.source} ${this.currentDisplayPageNum}페이지`;
+        pageInfoEl.style.display = 'inline';
         
-        // 페이지 이동 버튼 상태
+        // 페이지 이동 버튼 항상 활성화 (URL 패턴 기반)
         const prevPageBtn = document.getElementById('prevPageBtn');
         const nextPageBtn = document.getElementById('nextPageBtn');
         
-        prevPageBtn.disabled = this.currentPageIndex <= 0 || this.documentPages.length <= 1;
-        nextPageBtn.disabled = this.currentPageIndex >= this.documentPages.length - 1 || this.documentPages.length <= 1;
-        
-        prevPageBtn.style.opacity = prevPageBtn.disabled ? '0.3' : '0.8';
-        nextPageBtn.style.opacity = nextPageBtn.disabled ? '0.3' : '0.8';
+        prevPageBtn.disabled = false;
+        nextPageBtn.disabled = false;
+        prevPageBtn.style.opacity = '0.8';
+        nextPageBtn.style.opacity = '0.8';
         
         // 항목 인덱스 표시
         document.getElementById('itemIndexBadge').textContent = 
@@ -639,82 +617,79 @@ class LeasingSearchApp {
         }
     }
     
-    // 같은 문서의 이전 페이지
+    // 같은 문서의 이전 페이지 (URL 패턴 기반)
     showPrevPage() {
-        console.log('◀ Prev Page clicked');
-        console.log('  documentPages.length:', this.documentPages.length);
-        console.log('  currentPageIndex:', this.currentPageIndex);
+        const imgEl = document.getElementById('imageViewerImg');
+        const currentUrl = imgEl.src;
         
-        if (this.currentPageIndex > 0 && this.documentPages.length > 1) {
-            const beforePage = this.documentPages[this.currentPageIndex];
-            this.currentPageIndex--;
-            const afterPage = this.documentPages[this.currentPageIndex];
+        const newUrl = this.getAdjacentPageUrl(currentUrl, -1);
+        if (newUrl) {
+            console.log('◀ Prev Page:', newUrl.slice(-50));
+            imgEl.src = newUrl;
+            document.getElementById('imageViewerDownload').href = newUrl;
             
-            console.log('  BEFORE - pageNum:', beforePage?.pageNum, 'URL:', beforePage?.pageImageUrl?.slice(-30));
-            console.log('  AFTER  - pageNum:', afterPage?.pageNum, 'URL:', afterPage?.pageImageUrl?.slice(-30));
-            
-            this.updateImageViewer();
-        } else {
-            console.log('  → Cannot move: at first page or only 1 page');
+            // 페이지 번호 업데이트
+            this.currentDisplayPageNum--;
+            this.updatePageInfo();
         }
     }
     
-    // 같은 문서의 다음 페이지
+    // 같은 문서의 다음 페이지 (URL 패턴 기반)
     showNextPage() {
-        console.log('▶ Next Page clicked');
-        console.log('  documentPages.length:', this.documentPages.length);
-        console.log('  currentPageIndex:', this.currentPageIndex);
+        const imgEl = document.getElementById('imageViewerImg');
+        const currentUrl = imgEl.src;
         
-        if (this.currentPageIndex < this.documentPages.length - 1 && this.documentPages.length > 1) {
-            const beforePage = this.documentPages[this.currentPageIndex];
-            this.currentPageIndex++;
-            const afterPage = this.documentPages[this.currentPageIndex];
+        const newUrl = this.getAdjacentPageUrl(currentUrl, 1);
+        if (newUrl) {
+            console.log('▶ Next Page:', newUrl.slice(-50));
+            imgEl.src = newUrl;
+            document.getElementById('imageViewerDownload').href = newUrl;
             
-            console.log('  BEFORE - pageNum:', beforePage?.pageNum, 'URL:', beforePage?.pageImageUrl?.slice(-30));
-            console.log('  AFTER  - pageNum:', afterPage?.pageNum, 'URL:', afterPage?.pageImageUrl?.slice(-30));
-            
-            this.updateImageViewer();
-        } else {
-            console.log('  → Cannot move: at last page or only 1 page');
+            // 페이지 번호 업데이트
+            this.currentDisplayPageNum++;
+            this.updatePageInfo();
+        }
+    }
+    
+    // 인접 페이지 URL 생성
+    getAdjacentPageUrl(currentUrl, offset) {
+        // URL 패턴: .../page_092.jpg?...
+        const pageMatch = currentUrl.match(/page_(\d+)\.jpg/);
+        if (!pageMatch) return null;
+        
+        const currentPageNum = parseInt(pageMatch[1]);
+        const newPageNum = currentPageNum + offset;
+        
+        if (newPageNum < 1) return null; // 1페이지 미만 방지
+        
+        // 새 페이지 번호로 URL 생성 (3자리 패딩)
+        const newPageStr = String(newPageNum).padStart(3, '0');
+        const newUrl = currentUrl.replace(/page_\d+\.jpg/, `page_${newPageStr}.jpg`);
+        
+        return newUrl;
+    }
+    
+    // 페이지 정보 업데이트
+    updatePageInfo() {
+        const pageInfoEl = document.getElementById('imageViewerPageInfo');
+        const currentItem = this.viewableItems[this.currentViewIndex];
+        if (currentItem) {
+            pageInfoEl.textContent = `${currentItem.source} ${this.currentDisplayPageNum}페이지`;
         }
     }
     
     // 검색 결과의 이전 항목
-    async showPrevItem() {
+    showPrevItem() {
         if (this.currentViewIndex > 0) {
             this.currentViewIndex--;
-            const currentItem = this.viewableItems[this.currentViewIndex];
-            
-            // 새 문서의 페이지 목록 갱신
-            if (currentItem && currentItem.documentId) {
-                this.documentPages = await FirebaseService.getDocumentPages(currentItem.documentId);
-                this.currentPageIndex = this.documentPages.findIndex(p => p.pageNum === currentItem.pageNum);
-                if (this.currentPageIndex < 0) this.currentPageIndex = 0;
-            } else {
-                this.documentPages = [];
-                this.currentPageIndex = 0;
-            }
-            
             this.updateImageViewer();
         }
     }
     
     // 검색 결과의 다음 항목
-    async showNextItem() {
+    showNextItem() {
         if (this.currentViewIndex < this.viewableItems.length - 1) {
             this.currentViewIndex++;
-            const currentItem = this.viewableItems[this.currentViewIndex];
-            
-            // 새 문서의 페이지 목록 갱신
-            if (currentItem && currentItem.documentId) {
-                this.documentPages = await FirebaseService.getDocumentPages(currentItem.documentId);
-                this.currentPageIndex = this.documentPages.findIndex(p => p.pageNum === currentItem.pageNum);
-                if (this.currentPageIndex < 0) this.currentPageIndex = 0;
-            } else {
-                this.documentPages = [];
-                this.currentPageIndex = 0;
-            }
-            
             this.updateImageViewer();
         }
     }
