@@ -331,6 +331,20 @@ class LeasingSearchApp {
         this.renderResults();
     }
     
+    // 가격 포맷팅 헬퍼 함수
+    formatPrice(value) {
+        if (!value || value === '-' || value === '') return '-';
+        
+        // 숫자만 추출
+        const numStr = String(value).replace(/[^0-9.]/g, '');
+        const num = parseFloat(numStr);
+        
+        if (isNaN(num)) return value; // 원본 반환
+        
+        // 천 단위 콤마 추가
+        return num.toLocaleString('ko-KR');
+    }
+    
     renderResults() {
         const tbody = document.getElementById('resultsBody');
         const countBadge = document.getElementById('resultCount');
@@ -340,7 +354,7 @@ class LeasingSearchApp {
         if (this.currentResults.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="9" class="text-center text-muted py-5">
+                    <td colspan="12" class="text-center text-muted py-5">
                         <i class="bi bi-inbox fs-1 d-block mb-2"></i>
                         검색 결과가 없습니다.
                     </td>
@@ -368,8 +382,21 @@ class LeasingSearchApp {
                 <td>${this.escapeHtml(item.address) || '-'}</td>
                 <td>${this.escapeHtml(item.nearbyStation) || '-'}</td>
                 <td><span class="badge bg-secondary">${this.escapeHtml(item.floor)}</span></td>
-                <td>${item.exclusiveArea ? parseFloat(item.exclusiveArea).toFixed(2) : '-'}</td>
-                <td>${item.rentArea ? parseFloat(item.rentArea).toFixed(2) : '-'}</td>
+                <td class="price-cell">
+                    <span class="price-value">${item.exclusiveArea ? parseFloat(item.exclusiveArea).toFixed(1) : '-'}</span>
+                </td>
+                <td class="price-cell">
+                    <span class="price-value">${item.rentArea ? parseFloat(item.rentArea).toFixed(1) : '-'}</span>
+                </td>
+                <td class="price-cell">
+                    <span class="price-value">${this.formatPrice(item.depositPy) || '-'}</span>
+                </td>
+                <td class="price-cell">
+                    <span class="price-value">${this.formatPrice(item.rentPy) || '-'}</span>
+                </td>
+                <td class="price-cell">
+                    <span class="price-value">${this.formatPrice(item.maintenancePy) || '-'}</span>
+                </td>
                 <td>
                     <span class="source-badge ${this.escapeHtml(item.source)}">${this.escapeHtml(item.source)}</span>
                 </td>
@@ -579,8 +606,6 @@ class LeasingSearchApp {
         
         prevPageBtn.disabled = false;
         nextPageBtn.disabled = false;
-        prevPageBtn.style.opacity = '0.8';
-        nextPageBtn.style.opacity = '0.8';
         
         // 항목 인덱스 표시
         document.getElementById('itemIndexBadge').textContent = 
@@ -602,7 +627,7 @@ class LeasingSearchApp {
             prevInfo.textContent = `${prevItem.source} / ${prevItem.buildingName}`;
             prevBtn.disabled = false;
         } else {
-            prevInfo.textContent = '-';
+            prevInfo.textContent = '처음 항목';
             prevBtn.disabled = true;
         }
         
@@ -612,7 +637,7 @@ class LeasingSearchApp {
             nextInfo.textContent = `${nextItem.source} / ${nextItem.buildingName}`;
             nextBtn.disabled = false;
         } else {
-            nextInfo.textContent = '-';
+            nextInfo.textContent = '마지막 항목';
             nextBtn.disabled = true;
         }
     }

@@ -20,7 +20,6 @@
         body, button, input, select, textarea {
             font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
         }
-        
         /* 선택된 빌딩 태그 - 진한 핑크색 */
         .selected-building-tag {
             display: inline-block;
@@ -140,142 +139,62 @@
             }
         }
         
-        /* ===== 이미지 뷰어 모달 네비게이션 개선 ===== */
-        
-        /* 페이지 이동 버튼 (좌우 화살표) */
-        .page-nav-btn {
-            background: rgba(0, 0, 0, 0.7) !important;
-            border: 2px solid #fff !important;
-            color: #fff !important;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-            z-index: 10;
+        /* 이미지 뷰어 네비게이션 버튼 */
+        #prevPageBtn, #nextPageBtn {
+            opacity: 0.8;
+            transition: all 0.2s;
         }
         
-        .page-nav-btn:hover {
-            background: rgba(0, 123, 255, 0.9) !important;
-            border-color: #007bff !important;
+        #prevPageBtn:hover, #nextPageBtn:hover {
+            opacity: 1;
             transform: translateY(-50%) scale(1.1);
         }
         
-        .page-nav-btn:disabled {
-            background: rgba(128, 128, 128, 0.5) !important;
-            border-color: #999 !important;
+        #prevPageBtn:disabled, #nextPageBtn:disabled {
             cursor: not-allowed;
-            transform: translateY(-50%) scale(1);
         }
         
-        .page-nav-btn i {
-            font-size: 1.5rem;
-        }
-        
-        /* 항목 네비게이션 바 (하단) */
-        .item-nav-bar {
-            background: #2c3e50 !important;
-            border-top: 1px solid #34495e;
-            padding: 12px 16px;
-        }
-        
-        .item-nav-btn {
-            background: #3498db;
-            border: none;
-            color: #fff;
-            padding: 10px 16px;
+        /* 하단 항목 네비게이션 */
+        #prevItemBtn, #nextItemBtn {
             border-radius: 8px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            min-width: 140px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 2px;
+            transition: all 0.2s;
         }
         
-        .item-nav-btn:hover:not(:disabled) {
-            background: #2980b9;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        #prevItemBtn:hover:not(:disabled), #nextItemBtn:hover:not(:disabled) {
+            background-color: #e9ecef;
         }
         
-        .item-nav-btn:disabled {
-            background: #7f8c8d;
-            opacity: 0.6;
+        #prevItemBtn:disabled, #nextItemBtn:disabled {
+            opacity: 0.5;
             cursor: not-allowed;
         }
         
-        .item-nav-btn .nav-label {
-            font-size: 14px;
-            font-weight: 600;
-        }
-        
-        .item-nav-btn .nav-info {
+        #prevItemInfo, #nextItemInfo {
             font-size: 11px;
-            opacity: 0.85;
-            max-width: 120px;
+            max-width: 150px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
         
-        .item-index-badge {
-            background: #e74c3c;
-            color: #fff;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 14px;
-        }
-        
-        /* 모바일 네비게이션 */
+        /* 모바일에서 네비게이션 버튼 크기 조정 */
         @media (max-width: 768px) {
-            .page-nav-btn {
-                width: 44px !important;
-                height: 44px !important;
+            #prevPageBtn, #nextPageBtn {
+                width: 40px !important;
+                height: 40px !important;
             }
             
-            .page-nav-btn i {
+            #prevPageBtn i, #nextPageBtn i {
                 font-size: 1.2rem !important;
             }
             
-            .item-nav-bar {
-                padding: 10px 12px;
-            }
-            
-            .item-nav-btn {
-                min-width: 110px;
-                padding: 8px 12px;
-            }
-            
-            .item-nav-btn .nav-label {
-                font-size: 13px;
-            }
-            
-            .item-nav-btn .nav-info {
-                font-size: 10px;
-                max-width: 90px;
-            }
-            
-            .item-index-badge {
-                padding: 6px 12px;
+            #prevItemBtn, #nextItemBtn {
+                min-width: 40% !important;
                 font-size: 12px;
             }
-        }
-        
-        /* 작은 모바일 */
-        @media (max-width: 375px) {
-            .item-nav-btn {
-                min-width: 90px;
-                padding: 6px 10px;
-            }
             
-            .item-nav-btn .nav-info {
-                max-width: 70px;
+            #prevItemInfo, #nextItemInfo {
+                max-width: 100px;
             }
         }
         
@@ -306,48 +225,9 @@
         .source-badge.알스퀘어 { background-color: #6f42c1; color: white; }
         .source-badge.교보 { background-color: #20c997; color: white; }
         .source-badge.오스카 { background-color: #e83e8c; color: white; }
-        .source-badge.CBRE { background-color: #005a2b; color: white; }
-        
-        /* ===== 테이블 임대조건 스타일 ===== */
-        .price-cell {
-            font-size: 13px;
-            white-space: nowrap;
-        }
-        
-        .price-cell .price-value {
-            font-weight: 500;
-            color: #2c3e50;
-        }
-        
-        .price-cell .price-unit {
-            font-size: 11px;
-            color: #7f8c8d;
-        }
-        
-        /* PC에서 테이블 컬럼 너비 조정 */
-        @media (min-width: 1200px) {
-            #resultsTable th,
-            #resultsTable td {
-                padding: 10px 8px;
-                font-size: 14px;
-            }
-            
-            #resultsTable th:nth-child(1) { width: 40px; }  /* 선택 */
-            #resultsTable th:nth-child(2) { width: 140px; } /* 빌딩명 */
-            #resultsTable th:nth-child(3) { width: 160px; } /* 주소 */
-            #resultsTable th:nth-child(4) { width: 80px; }  /* 인근역 */
-            #resultsTable th:nth-child(5) { width: 70px; }  /* 공실층 */
-            #resultsTable th:nth-child(6) { width: 80px; }  /* 전용면적 */
-            #resultsTable th:nth-child(7) { width: 80px; }  /* 임대면적 */
-            #resultsTable th:nth-child(8) { width: 80px; }  /* 보증금 */
-            #resultsTable th:nth-child(9) { width: 80px; }  /* 임대료 */
-            #resultsTable th:nth-child(10) { width: 80px; } /* 관리비 */
-            #resultsTable th:nth-child(11) { width: 70px; } /* 출처 */
-            #resultsTable th:nth-child(12) { width: 120px; } /* 액션 */
-        }
         
         /* ===== 모바일 반응형 카드 스타일 ===== */
-        @media (max-width: 991px) {
+        @media (max-width: 768px) {
             .table-responsive {
                 overflow-x: visible;
             }
@@ -362,42 +242,41 @@
             
             #resultsTable tbody tr {
                 display: block;
-                margin-bottom: 16px;
+                margin-bottom: 15px;
                 border: 1px solid #dee2e6;
-                border-radius: 12px;
+                border-radius: 8px;
                 background: white;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
                 overflow: hidden;
                 position: relative;
                 padding: 0;
             }
             
             #resultsTable tbody tr:hover {
-                box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+                box-shadow: 0 4px 8px rgba(0,0,0,0.15);
             }
             
             #resultsTable tbody td {
                 display: block;
                 text-align: left !important;
                 border: none;
-                padding: 8px 16px;
+                padding: 8px 15px;
                 position: relative;
-                font-size: 14px;
             }
             
             /* 체크박스 - 카드 우측 상단 */
             #resultsTable tbody td:first-child {
                 position: absolute;
-                top: 14px;
-                right: 14px;
+                top: 15px;
+                right: 15px;
                 width: auto;
                 padding: 0;
                 z-index: 1;
             }
             
             #resultsTable tbody td:first-child input[type="checkbox"] {
-                width: 22px;
-                height: 22px;
+                width: 20px;
+                height: 20px;
             }
             
             /* 빌딩명 - 카드 헤더 */
@@ -406,21 +285,13 @@
                 color: white;
                 font-weight: 600;
                 font-size: 16px;
-                padding: 16px 50px 16px 16px;
-                margin-bottom: 0;
+                padding: 15px 50px 15px 15px;
+                margin-bottom: 5px;
             }
             
             #resultsTable tbody td:nth-child(2)::before {
                 content: '🏢 ';
-                font-size: 16px;
-            }
-            
-            /* 주요 정보 섹션 */
-            #resultsTable tbody td:nth-child(3),
-            #resultsTable tbody td:nth-child(4),
-            #resultsTable tbody td:nth-child(5) {
-                padding: 10px 16px;
-                border-bottom: 1px solid #f0f0f0;
+                font-size: 18px;
             }
             
             /* 각 필드에 라벨 추가 */
@@ -428,96 +299,77 @@
                 content: '📍 주소: ';
                 font-weight: 600;
                 color: #6c757d;
+                display: inline-block;
+                min-width: 80px;
             }
             
             #resultsTable tbody td:nth-child(4)::before {
                 content: '🚇 인근역: ';
                 font-weight: 600;
                 color: #6c757d;
+                display: inline-block;
+                min-width: 80px;
             }
             
             #resultsTable tbody td:nth-child(5)::before {
                 content: '🏢 공실층: ';
                 font-weight: 600;
                 color: #6c757d;
-            }
-            
-            /* 면적/임대조건 그리드 */
-            #resultsTable tbody td:nth-child(6),
-            #resultsTable tbody td:nth-child(7),
-            #resultsTable tbody td:nth-child(8),
-            #resultsTable tbody td:nth-child(9),
-            #resultsTable tbody td:nth-child(10) {
                 display: inline-block;
-                width: calc(50% - 8px);
-                padding: 8px 12px;
-                margin: 4px;
-                background: #f8f9fa;
-                border-radius: 8px;
-                font-size: 13px;
-                vertical-align: top;
+                min-width: 80px;
             }
             
             #resultsTable tbody td:nth-child(6)::before {
-                content: '전용 ';
+                content: '📐 전용면적: ';
                 font-weight: 600;
                 color: #6c757d;
-                display: block;
-                font-size: 11px;
+                display: inline-block;
+                min-width: 80px;
             }
             
             #resultsTable tbody td:nth-child(7)::before {
-                content: '임대 ';
+                content: '📏 임대면적: ';
                 font-weight: 600;
                 color: #6c757d;
-                display: block;
-                font-size: 11px;
-            }
-            
-            #resultsTable tbody td:nth-child(8)::before {
-                content: '보증금/평 ';
-                font-weight: 600;
-                color: #e74c3c;
-                display: block;
-                font-size: 11px;
-            }
-            
-            #resultsTable tbody td:nth-child(9)::before {
-                content: '임대료/평 ';
-                font-weight: 600;
-                color: #3498db;
-                display: block;
-                font-size: 11px;
-            }
-            
-            #resultsTable tbody td:nth-child(10)::before {
-                content: '관리비/평 ';
-                font-weight: 600;
-                color: #27ae60;
-                display: block;
-                font-size: 11px;
+                display: inline-block;
+                min-width: 80px;
             }
             
             /* 출처 */
-            #resultsTable tbody td:nth-child(11) {
-                display: inline-block;
-                padding: 8px 16px;
+            #resultsTable tbody td:nth-child(8) {
+                position: absolute;
+                bottom: 12px;
+                left: 15px;
+                background: none;
+                color: #6c757d;
+                padding: 0;
+                font-size: 11px;
                 width: auto;
+                margin: 0;
+            }
+            
+            #resultsTable tbody td:nth-child(8)::before {
+                content: '출처: ';
+                font-weight: 600;
             }
             
             /* 액션 버튼 - 카드 하단 */
-            #resultsTable tbody td:nth-child(12) {
-                display: block;
-                padding: 12px 16px;
+            #resultsTable tbody td:nth-child(9) {
+                padding: 12px 15px 12px 80px;
                 background: #f8f9fa;
-                border-top: 1px solid #e9ecef;
-                margin-top: 8px;
+                border-top: 1px solid #dee2e6;
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+                justify-content: flex-end;
+                margin-top: 5px;
             }
             
-            #resultsTable tbody td:nth-child(12) .btn {
+            #resultsTable tbody td:nth-child(9) .btn {
+                flex: 1;
+                min-width: calc(50% - 4px);
                 font-size: 13px;
-                padding: 8px 12px;
-                margin-right: 8px;
+                padding: 8px 10px;
             }
             
             /* 빈 상태 메시지 */
@@ -528,14 +380,20 @@
             }
         }
         
-        /* 태블릿 최적화 (768px ~ 991px) */
-        @media (min-width: 768px) and (max-width: 991px) {
-            #resultsTable tbody td:nth-child(6),
-            #resultsTable tbody td:nth-child(7),
-            #resultsTable tbody td:nth-child(8),
-            #resultsTable tbody td:nth-child(9),
-            #resultsTable tbody td:nth-child(10) {
-                width: calc(33.33% - 8px);
+        /* 태블릿 최적화 */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            #resultsTable {
+                font-size: 14px;
+            }
+            
+            #resultsTable th,
+            #resultsTable td {
+                padding: 8px 6px;
+            }
+            
+            #resultsTable tbody td:nth-child(9) .btn {
+                font-size: 12px;
+                padding: 6px 8px;
             }
         }
         
@@ -586,23 +444,26 @@
         @media (max-width: 375px) {
             #resultsTable tbody td:nth-child(2) {
                 font-size: 15px;
-                padding: 14px 45px 14px 14px;
+                padding: 12px 45px 12px 12px;
             }
             
-            #resultsTable tbody td:nth-child(6),
-            #resultsTable tbody td:nth-child(7),
-            #resultsTable tbody td:nth-child(8),
-            #resultsTable tbody td:nth-child(9),
-            #resultsTable tbody td:nth-child(10) {
-                width: calc(50% - 6px);
-                padding: 6px 10px;
-                margin: 3px;
-                font-size: 12px;
+            #resultsTable tbody td:nth-child(9) {
+                padding: 12px 15px;
+                flex-direction: column;
             }
             
-            #resultsTable tbody td:nth-child(12) .btn {
+            #resultsTable tbody td:nth-child(8) {
+                position: relative;
+                bottom: auto;
+                left: auto;
+                padding: 8px 15px;
+                font-size: 11px;
+                order: -1;
+            }
+            
+            #resultsTable tbody td:nth-child(9) .btn {
+                min-width: 100%;
                 font-size: 12px;
-                padding: 6px 10px;
             }
             
             .selected-building-tag {
@@ -771,23 +632,20 @@
                             <table class="table table-hover align-middle" id="resultsTable">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>선택</th>
+                                        <th width="50">선택</th>
                                         <th>빌딩명</th>
                                         <th>주소</th>
                                         <th>인근역</th>
                                         <th>공실층</th>
-                                        <th>전용(평)</th>
-                                        <th>임대(평)</th>
-                                        <th>보증금/평</th>
-                                        <th>임대료/평</th>
-                                        <th>관리비/평</th>
+                                        <th>전용면적(평)</th>
+                                        <th>임대면적(평)</th>
                                         <th>출처</th>
-                                        <th>액션</th>
+                                        <th width="150">액션</th>
                                     </tr>
                                 </thead>
                                 <tbody id="resultsBody">
                                     <tr>
-                                        <td colspan="12" class="text-center text-muted py-5">
+                                        <td colspan="9" class="text-center text-muted py-5">
                                             <i class="bi bi-search fs-1 d-block mb-2"></i>
                                             검색 조건을 입력하고 검색 버튼을 클릭하세요.
                                         </td>
@@ -818,32 +676,32 @@
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body text-center p-0 position-relative" style="max-height: 75vh; overflow: auto; background: #1a1a1a;">
+                <div class="modal-body text-center p-0 position-relative" style="max-height: 75vh; overflow: auto;">
                     <!-- 이전 페이지 버튼 -->
-                    <button class="btn page-nav-btn position-absolute start-0 top-50 translate-middle-y ms-3" 
-                            id="prevPageBtn" title="이전 페이지 (←)">
-                        <i class="bi bi-chevron-left"></i>
+                    <button class="btn btn-light position-absolute start-0 top-50 translate-middle-y ms-2 rounded-circle shadow" 
+                            id="prevPageBtn" style="z-index: 10; width: 50px; height: 50px;" title="이전 페이지">
+                        <i class="bi bi-chevron-left fs-4"></i>
                     </button>
                     
                     <img id="imageViewerImg" src="" alt="임대안내문" style="max-width: 100%; height: auto;">
                     
                     <!-- 다음 페이지 버튼 -->
-                    <button class="btn page-nav-btn position-absolute end-0 top-50 translate-middle-y me-3" 
-                            id="nextPageBtn" title="다음 페이지 (→)">
-                        <i class="bi bi-chevron-right"></i>
+                    <button class="btn btn-light position-absolute end-0 top-50 translate-middle-y me-2 rounded-circle shadow" 
+                            id="nextPageBtn" style="z-index: 10; width: 50px; height: 50px;" title="다음 페이지">
+                        <i class="bi bi-chevron-right fs-4"></i>
                     </button>
                 </div>
                 
                 <!-- 이전/다음 항목 네비게이션 -->
-                <div class="d-flex justify-content-between align-items-center item-nav-bar" id="itemNavigation">
-                    <button class="btn item-nav-btn" id="prevItemBtn">
-                        <span class="nav-label"><i class="bi bi-caret-up-fill"></i> 이전 빌딩</span>
-                        <span class="nav-info" id="prevItemInfo">-</span>
+                <div class="d-flex justify-content-between align-items-center px-3 py-2 bg-light border-top" id="itemNavigation">
+                    <button class="btn btn-sm btn-outline-secondary text-start" id="prevItemBtn" style="min-width: 45%;">
+                        <i class="bi bi-caret-left-fill"></i> 이전
+                        <small class="d-block text-muted" id="prevItemInfo">-</small>
                     </button>
-                    <span class="item-index-badge" id="itemIndexBadge">1 / 10</span>
-                    <button class="btn item-nav-btn" id="nextItemBtn">
-                        <span class="nav-label">다음 빌딩 <i class="bi bi-caret-down-fill"></i></span>
-                        <span class="nav-info" id="nextItemInfo">-</span>
+                    <span class="badge bg-primary" id="itemIndexBadge">1 / 10</span>
+                    <button class="btn btn-sm btn-outline-secondary text-end" id="nextItemBtn" style="min-width: 45%;">
+                        다음 <i class="bi bi-caret-right-fill"></i>
+                        <small class="d-block text-muted" id="nextItemInfo">-</small>
                     </button>
                 </div>
                 
