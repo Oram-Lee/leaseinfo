@@ -310,6 +310,135 @@ async function getDocumentPages(documentId) {
 }
 
 /**
+ * 같은 회사(source)와 빌딩(buildingName)의 과월호 목록 가져오기
+ * @param {string} source - 출처 (회사명)
+ * @param {string} buildingName - 빌딩명
+ * @returns {Array} 발행일순 정렬된 과월호 목록
+ */
+async function getArchivesBySourceAndBuilding(source, buildingName) {
+    if (!source || !buildingName) return [];
+    
+    const allData = await loadMergedData();
+    
+    // 같은 회사 + 같은 빌딩 필터링
+    const archives = allData.filter(item => 
+        item.source === source && 
+        item.buildingName === buildingName &&
+        item.pageImageUrl
+    );
+    
+    // publishDate 기준 그룹핑 (중복 제거)
+    const uniqueArchives = new Map();
+    archives.forEach(item => {
+        const key = `${item.publishDate}_${item.documentId}`;
+        if (!uniqueArchives.has(key)) {
+            uniqueArchives.set(key, item);
+        }
+    });
+    
+    // 발행일 기준 내림차순 정렬 (최신순)
+    const sorted = Array.from(uniqueArchives.values()).sort((a, b) => {
+        const dateA = parsePublishDate(a.publishDate);
+        const dateB = parsePublishDate(b.publishDate);
+        return dateB - dateA;
+    });
+    
+    console.log(`📚 Archives for ${source}/${buildingName}: ${sorted.length} issues found`);
+    return sorted;
+}
+
+/**
+ * 같은 빌딩의 다른 회사 임대안내문 목록 가져오기
+ * @param {string} buildingName - 빌딩명
+ * @param {string} excludeSource - 제외할 회사 (현재 보고 있는 회사)
+ * @returns {Array} 회사별 최신 임대안내문 목록
+ */
+async function getOtherSourcesForBuilding(buildingName, excludeSource = '') {
+    if (!buildingName) return [];
+    
+    const allData = await loadMergedData();
+    
+    // 같은 빌딩의 다른 회사 필터링
+    const otherSources = allData.filter(item => 
+        item.buildingName === buildingName && 
+        item.source !== excludeSource &&
+        item.pageImageUrl
+    );
+    
+    // 회사별로 최신 자료만 선택
+    const latestBySource = new Map();
+    otherSources.forEach(item => {
+        const existing = latestBySource.get(item.source);
+        if (!existing) {
+            latestBySource.set(item.source, item);
+        } else {
+            const existingDate = parsePublishDate(existing.publishDate);
+            const itemDate = parsePublishDate(item.publishDate);
+            if (itemDate > existingDate) {
+                latestBySource.set(item.source, item);
+            }
+        }
+    });
+    
+    // 발행일 기준 내림차순 정렬
+    const sorted = Array.from(latestBySource.values()).sort((a, b) => {
+        const dateA = parsePublishDate(a.publishDate);
+        const dateB = parsePublishDate(b.publishDate);
+        return dateB - dateA;
+    });
+    
+    console.log(`🏢 Other sources for ${buildingName}: ${sorted.length} companies found`);
+    return sorted;
+}
+
+/**
+ * 같은 빌딩명의 모든 자료 가져오기 (검색 결과 내 동일 빌딩)
+ * @param {string} buildingName - 빌딩명
+ * @returns {Array} 발행일순 정렬된 모든 자료
+ */
+async function getAllForBuilding(buildingName) {
+    if (!buildingName) return [];
+    
+    const allData = await loadMergedData();
+    
+    const items = allData.filter(item => 
+        item.buildingName === buildingName && 
+        item.pageImageUrl
+    );
+    
+    // 발행일 기준 내림차순 정렬
+    const sorted = items.sort((a, b) => {
+        const dateA = parsePublishDate(a.publishDate);
+        const dateB = parsePublishDate(b.publishDate);
+        return dateB - dateA;
+    });
+    
+    return sorted;
+}
+
+/**
+ * publishDate 파싱 헬퍼 함수
+ * @param {string} publishDate - "26.01" 또는 "2026.01" 형식
+ * @returns {Date} 날짜 객체
+ */
+function parsePublishDate(publishDate) {
+    if (!publishDate) return new Date(0);
+    
+    const match = publishDate.match(/(\d{2,4})\.(\d{2})/);
+    if (!match) return new Date(0);
+    
+    let year = parseInt(match[1]);
+    const month = parseInt(match[2]);
+    
+    // 2자리 연도면 2000년대로 변환
+    if (year < 100) {
+        year = 2000 + year;
+    }
+    
+    return new Date(year, month - 1, 1);
+}
+
+/**
  * 마지막 업데이트 시간 가져오기
  */
 async function getLastUpdateTime() {
@@ -318,15 +447,9 @@ async function getLastUpdateTime() {
     let latestTime = null;
     allData.forEach(item => {
         if (item.publishDate) {
-            // publishDate 형식: "26.01" -> 2026-01
-            const match = item.publishDate.match(/(\d{2})\.(\d{2})/);
-            if (match) {
-                const year = 2000 + parseInt(match[1]);
-                const month = parseInt(match[2]);
-                const date = new Date(year, month - 1, 1);
-                if (!latestTime || date > latestTime) {
-                    latestTime = date;
-                }
+            const date = parsePublishDate(item.publishDate);
+            if (!latestTime || date > latestTime) {
+                latestTime = date;
             }
         }
     });
@@ -349,7 +472,11 @@ window.FirebaseService = {
     getStationSuggestions,
     getSourceList,
     getLastUpdateTime,
-    getDocumentPages
+    getDocumentPages,
+    getArchivesBySourceAndBuilding,
+    getOtherSourcesForBuilding,
+    getAllForBuilding,
+    parsePublishDate
 };
 
 console.log('🔥 Firebase Service initialized');
