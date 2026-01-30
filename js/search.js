@@ -8,16 +8,10 @@ class LeasingSearchApp {
         this.currentPage = 1;
         this.pageSize = 20;
         this.isLoading = false;
-        this.currentViewIndex = -1;
-        this.viewableItems = [];
         this.currentDisplayPageNum = 1;
         
         // 과월호 목록
         this.archiveList = [];
-        
-        // 검색 결과 내 동일 빌딩의 다른 회사 자료
-        this.sameBuildingOtherSources = [];
-        this.currentSourceIndex = 0;
         
         // 이미지 탐색 설정
         this.maxPageSearchAttempts = 20;
@@ -59,7 +53,7 @@ class LeasingSearchApp {
         for (let i = 0; i < str.length; i++) {
             const char = str.charCodeAt(i);
             hash = ((hash << 5) - hash) + char;
-            hash = hash & hash; // Convert to 32bit integer
+            hash = hash & hash;
         }
         return Math.abs(hash);
     }
@@ -68,17 +62,14 @@ class LeasingSearchApp {
     getSourceColor(source) {
         if (!source) return this.colorPalette[0];
         
-        // 캐시된 색상이 있으면 반환
         if (this.sourceColorCache.has(source)) {
             return this.sourceColorCache.get(source);
         }
         
-        // 해시 기반으로 색상 선택
         const hash = this.hashString(source);
         const colorIndex = hash % this.colorPalette.length;
         const color = this.colorPalette[colorIndex];
         
-        // 캐시에 저장
         this.sourceColorCache.set(source, color);
         
         return color;
@@ -145,10 +136,6 @@ class LeasingSearchApp {
         document.getElementById('prevPageBtn').addEventListener('click', () => this.showPrevPage());
         document.getElementById('nextPageBtn').addEventListener('click', () => this.showNextPage());
         
-        // 타사 자료 이동
-        document.getElementById('prevItemBtn').addEventListener('click', () => this.showPrevOtherSource());
-        document.getElementById('nextItemBtn').addEventListener('click', () => this.showNextOtherSource());
-        
         // 과월호 선택
         document.getElementById('archiveSelect').addEventListener('change', (e) => {
             this.onArchiveSelect(e.target.value);
@@ -164,12 +151,6 @@ class LeasingSearchApp {
                 } else if (e.key === 'ArrowRight') {
                     e.preventDefault();
                     this.showNextPage();
-                } else if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    this.showPrevOtherSource();
-                } else if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    this.showNextOtherSource();
                 }
             }
         });
@@ -546,9 +527,6 @@ class LeasingSearchApp {
         this.currentViewItem = item;
         this.currentDisplayPageNum = item.pageNum || 1;
         
-        // 검색 결과 내 동일 빌딩의 다른 회사 자료 찾기
-        this.findSameBuildingOtherSources(item);
-        
         // 과월호 로드
         await this.loadArchives(item);
         
@@ -556,45 +534,6 @@ class LeasingSearchApp {
         
         const modal = new bootstrap.Modal(document.getElementById('imageViewerModal'));
         modal.show();
-    }
-    
-    // 검색 결과 내에서 동일 빌딩/다른 회사 찾기
-    findSameBuildingOtherSources(currentItem) {
-        // 검색 결과에서 같은 빌딩명의 항목들 찾기
-        const sameBuildingItems = this.currentResults.filter(item => 
-            item.buildingName === currentItem.buildingName && 
-            item.pageImageUrl
-        );
-        
-        // 회사별로 최신 자료만 선택 (중복 제거)
-        const sourceMap = new Map();
-        sameBuildingItems.forEach(item => {
-            const existing = sourceMap.get(item.source);
-            if (!existing) {
-                sourceMap.set(item.source, item);
-            } else {
-                // 더 최신 발행일이면 교체
-                const existingDate = FirebaseService.parsePublishDate(existing.publishDate);
-                const itemDate = FirebaseService.parsePublishDate(item.publishDate);
-                if (itemDate > existingDate) {
-                    sourceMap.set(item.source, item);
-                }
-            }
-        });
-        
-        // 발행일 최신순 정렬
-        this.sameBuildingOtherSources = Array.from(sourceMap.values()).sort((a, b) => {
-            const dateA = FirebaseService.parsePublishDate(a.publishDate);
-            const dateB = FirebaseService.parsePublishDate(b.publishDate);
-            return dateB - dateA;
-        });
-        
-        // 현재 항목의 인덱스 찾기
-        this.currentSourceIndex = this.sameBuildingOtherSources.findIndex(
-            item => item.source === currentItem.source
-        );
-        
-        console.log(`🏢 Same building "${currentItem.buildingName}": ${this.sameBuildingOtherSources.length} sources found`);
     }
     
     async loadArchives(item) {
@@ -658,50 +597,6 @@ class LeasingSearchApp {
         
         document.getElementById('prevPageBtn').disabled = false;
         document.getElementById('nextPageBtn').disabled = false;
-        
-        // 타사 네비게이션 업데이트
-        this.updateOtherSourcesNavigation();
-    }
-    
-    updateOtherSourcesNavigation() {
-        const prevBtn = document.getElementById('prevItemBtn');
-        const nextBtn = document.getElementById('nextItemBtn');
-        const prevInfo = document.getElementById('prevItemInfo');
-        const nextInfo = document.getElementById('nextItemInfo');
-        const indexBadge = document.getElementById('itemIndexBadge');
-        
-        const totalSources = this.sameBuildingOtherSources.length;
-        
-        if (totalSources <= 1) {
-            indexBadge.textContent = '타사 자료 없음';
-            prevInfo.textContent = '-';
-            nextInfo.textContent = '-';
-            prevBtn.disabled = true;
-            nextBtn.disabled = true;
-            return;
-        }
-        
-        indexBadge.textContent = `${this.currentSourceIndex + 1} / ${totalSources} 회사`;
-        
-        // 이전 회사
-        if (this.currentSourceIndex > 0) {
-            const prevSource = this.sameBuildingOtherSources[this.currentSourceIndex - 1];
-            prevInfo.textContent = `${prevSource.source} (${prevSource.publishDate})`;
-            prevBtn.disabled = false;
-        } else {
-            prevInfo.textContent = '처음';
-            prevBtn.disabled = true;
-        }
-        
-        // 다음 회사
-        if (this.currentSourceIndex < totalSources - 1) {
-            const nextSource = this.sameBuildingOtherSources[this.currentSourceIndex + 1];
-            nextInfo.textContent = `${nextSource.source} (${nextSource.publishDate})`;
-            nextBtn.disabled = false;
-        } else {
-            nextInfo.textContent = '마지막';
-            nextBtn.disabled = true;
-        }
     }
     
     // ===== 이미지 로드 =====
@@ -843,35 +738,6 @@ class LeasingSearchApp {
             document.getElementById('imageViewerPageInfo').textContent = 
                 `${item.source} ${this.currentDisplayPageNum}페이지`;
         }
-    }
-    
-    // ===== 타사 자료 이동 =====
-    
-    async showPrevOtherSource() {
-        if (this.currentSourceIndex <= 0) return;
-        
-        this.currentSourceIndex--;
-        await this.switchToSource(this.sameBuildingOtherSources[this.currentSourceIndex]);
-    }
-    
-    async showNextOtherSource() {
-        if (this.currentSourceIndex >= this.sameBuildingOtherSources.length - 1) return;
-        
-        this.currentSourceIndex++;
-        await this.switchToSource(this.sameBuildingOtherSources[this.currentSourceIndex]);
-    }
-    
-    async switchToSource(sourceItem) {
-        if (!sourceItem) return;
-        
-        // 현재 항목을 새 회사의 자료로 변경
-        this.currentViewItem = { ...sourceItem };
-        this.currentDisplayPageNum = sourceItem.pageNum || 1;
-        
-        // 새 회사의 과월호 로드
-        await this.loadArchives(sourceItem);
-        
-        this.updateImageViewer();
     }
     
     // ===== 기타 =====

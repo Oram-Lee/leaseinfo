@@ -107,43 +107,14 @@
             border: 1px solid #4a6785;
         }
         
-        /* 타사 네비게이션 바 */
-        .item-nav-bar {
-            background: #2c3e50 !important; border-top: 1px solid #34495e; padding: 12px 16px;
-        }
-        .item-nav-btn {
-            background: #3498db; border: none; color: #fff;
-            padding: 10px 16px; border-radius: 8px; font-weight: 500;
-            min-width: 140px; display: flex; flex-direction: column; align-items: center; gap: 2px;
-        }
-        .item-nav-btn:hover:not(:disabled) {
-            background: #2980b9; transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-        .item-nav-btn:disabled { background: #7f8c8d; opacity: 0.6; cursor: not-allowed; }
-        .item-nav-btn .nav-label { font-size: 14px; font-weight: 600; }
-        .item-nav-btn .nav-info {
-            font-size: 11px; opacity: 0.85;
-            max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-        }
-        .item-index-badge {
-            background: #e74c3c; color: #fff;
-            padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 13px;
-        }
-        
         @media (max-width: 768px) {
             .page-nav-btn { width: 44px !important; height: 44px !important; }
             .page-nav-btn i { font-size: 1.2rem !important; }
             .archive-select-wrapper { padding: 8px 12px; }
             .archive-select-wrapper select { min-width: 140px; font-size: 12px; }
-            .shortcut-guide { gap: 12px; padding: 6px 12px; flex-wrap: wrap; }
+            .shortcut-guide { gap: 12px; padding: 6px 12px; }
             .shortcut-item { font-size: 11px; }
             .shortcut-key { font-size: 10px; padding: 2px 6px; }
-            .item-nav-bar { padding: 10px 12px; }
-            .item-nav-btn { min-width: 100px; padding: 8px 10px; }
-            .item-nav-btn .nav-label { font-size: 12px; }
-            .item-nav-btn .nav-info { font-size: 10px; max-width: 80px; }
-            .item-index-badge { padding: 6px 10px; font-size: 11px; }
         }
         
         .loading-overlay {
@@ -590,11 +561,6 @@
                         <span class="shortcut-key">→</span>
                         <span>페이지 이동</span>
                     </div>
-                    <div class="shortcut-item">
-                        <span class="shortcut-key">↑</span>
-                        <span class="shortcut-key">↓</span>
-                        <span>타사 자료 이동</span>
-                    </div>
                 </div>
                 
                 <!-- 과월호 선택 -->
@@ -603,7 +569,7 @@
                     <select id="archiveSelect"></select>
                 </div>
                 
-                <div class="modal-body text-center p-0 position-relative" style="max-height: 65vh; overflow: auto; background: #1a1a1a;">
+                <div class="modal-body text-center p-0 position-relative" style="max-height: 80vh; overflow: auto; background: #1a1a1a;">
                     <button class="btn page-nav-btn position-absolute start-0 top-50 translate-middle-y ms-3" 
                             id="prevPageBtn" title="이전 페이지 (←)">
                         <i class="bi bi-chevron-left"></i>
@@ -614,19 +580,6 @@
                     <button class="btn page-nav-btn position-absolute end-0 top-50 translate-middle-y me-3" 
                             id="nextPageBtn" title="다음 페이지 (→)">
                         <i class="bi bi-chevron-right"></i>
-                    </button>
-                </div>
-                
-                <!-- 타사 자료 네비게이션 -->
-                <div class="d-flex justify-content-between align-items-center item-nav-bar" id="itemNavigation">
-                    <button class="btn item-nav-btn" id="prevItemBtn">
-                        <span class="nav-label"><i class="bi bi-caret-up-fill"></i> 이전 회사</span>
-                        <span class="nav-info" id="prevItemInfo">-</span>
-                    </button>
-                    <span class="item-index-badge" id="itemIndexBadge">1 / 1 회사</span>
-                    <button class="btn item-nav-btn" id="nextItemBtn">
-                        <span class="nav-label">다음 회사 <i class="bi bi-caret-down-fill"></i></span>
-                        <span class="nav-info" id="nextItemInfo">-</span>
                     </button>
                 </div>
                 
