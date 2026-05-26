@@ -1,14 +1,12 @@
-// Search Controller for Leasing Search App (v2: 그룹핑 카드 + 회전/Fit 모드)
+// Search Controller for Leasing Search App
 // Firebase 연동 검색 및 UI 제어
 
 class LeasingSearchApp {
     constructor() {
-        this.currentResults = [];     // 원본 row 데이터
-        this.currentGroups = [];      // 그룹핑된 카드 데이터
-        this.currentSearchOptions = {}; // 최근 검색 옵션 (정렬용)
+        this.currentResults = [];
         this.selectedItems = new Map();
         this.currentPage = 1;
-        this.pageSize = 20;           // 그룹(카드) 단위
+        this.pageSize = 20;
         this.isLoading = false;
         this.currentDisplayPageNum = 1;
         this.currentViewItem = null;
@@ -25,13 +23,8 @@ class LeasingSearchApp {
             '#087990','#aa6e2e','#5c636a','#3d8bfd','#479f76'
         ];
 
-        // 이미지 줌/회전/Fit 상태
-        this._zoom = {
-            scale: 1, lastScale: 1, startDist: 0, lastTapTime: 0,
-            isFullscreen: false,
-            rotation: 0,           // 0, 90, 180, 270
-            fitMode: 'width'       // 'width' | 'all'
-        };
+        // 이미지 줌 상태
+        this._zoom = { scale: 1, lastScale: 1, startDist: 0, lastTapTime: 0, isFullscreen: false };
 
         this.init();
     }
@@ -59,7 +52,7 @@ class LeasingSearchApp {
     }
 
     async init() {
-        console.log('🚀 Initializing Leasing Search App v2 (Grouped Cards)...');
+        console.log('🚀 Initializing Leasing Search App...');
         this.bindEvents();
         this.setupAutocomplete();
         try {
@@ -81,6 +74,7 @@ class LeasingSearchApp {
         });
 
         document.getElementById('searchBtn').addEventListener('click', () => {
+            // 검색 버튼 클릭 시 열린 suggestion 먼저 닫고 검색
             document.querySelectorAll('.suggestions').forEach(s => s.classList.remove('show'));
             this.performSearch();
         });
@@ -94,6 +88,7 @@ class LeasingSearchApp {
             this.renderResults();
         });
 
+        // Enter 키 검색 (모든 입력 필드)
         ['buildingName','districtName','stationName','walkingTime','vacancyAreaFrom','vacancyAreaTo'].forEach(id => {
             const el = document.getElementById(id);
             if (el) {
@@ -109,48 +104,35 @@ class LeasingSearchApp {
 
         document.getElementById('showSelectedMap').addEventListener('click', () => this.showSelectedOnMap());
 
+        // 이미지 뷰어 - 페이지 이동
         document.getElementById('prevPageBtn').addEventListener('click', () => this.showPrevPage());
         document.getElementById('nextPageBtn').addEventListener('click', () => this.showNextPage());
 
+        // 과월호 선택
         document.getElementById('archiveSelect').addEventListener('change', (e) => {
             this.onArchiveSelect(e.target.value);
         });
 
+        // 전체화면 버튼
         const fullscreenBtn = document.getElementById('imageFullscreenBtn');
         if (fullscreenBtn) {
             fullscreenBtn.addEventListener('click', () => this.toggleImageFullscreen());
         }
 
-        // ★ 새로 추가: 회전 버튼
-        const rotateBtn = document.getElementById('imageRotateBtn');
-        if (rotateBtn) {
-            rotateBtn.addEventListener('click', () => this.toggleImageRotation());
-        }
-
-        // ★ 새로 추가: Fit 모드 토글
-        const fitBtn = document.getElementById('imageFitBtn');
-        if (fitBtn) {
-            fitBtn.addEventListener('click', () => this.toggleFitMode());
-        }
-
-        // 키보드 단축키
+        // 키보드 네비게이션
         document.addEventListener('keydown', (e) => {
             const modal = document.getElementById('imageViewerModal');
             if (modal.classList.contains('show') && !this.isSearchingPage) {
                 if (e.key === 'ArrowLeft') { e.preventDefault(); this.showPrevPage(); }
                 else if (e.key === 'ArrowRight') { e.preventDefault(); this.showNextPage(); }
                 else if (e.key === 'Escape') { this.exitImageFullscreen(); }
-                else if (e.key === 'r' || e.key === 'R') { e.preventDefault(); this.toggleImageRotation(); }
-                else if (e.key === 'f' || e.key === 'F') { e.preventDefault(); this.toggleFitMode(); }
             }
         });
 
+        // 모달 닫힐 때 줌 초기화
         document.getElementById('imageViewerModal').addEventListener('hidden.bs.modal', () => {
             this.resetImageZoom();
             this.exitImageFullscreen();
-            // 회전/Fit도 모달 닫힐 때 초기화
-            this._zoom.rotation = 0;
-            this._zoom.fitMode = 'width';
         });
     }
 
@@ -190,6 +172,8 @@ class LeasingSearchApp {
         const input = document.getElementById(inputId);
         const suggestions = document.getElementById(suggestionsId);
         if (!input || !suggestions) return;
+
+        // ★ 모바일 UX: enterKeyHint 속성 추가
         input.setAttribute('enterkeyhint', 'search');
 
         let debounceTimer = null;
@@ -197,15 +181,24 @@ class LeasingSearchApp {
         input.addEventListener('input', async (e) => {
             const query = e.target.value.trim();
             if (debounceTimer) clearTimeout(debounceTimer);
+
             document.querySelectorAll('.suggestions').forEach(s => {
                 if (s.id !== suggestionsId) s.classList.remove('show');
             });
-            if (query.length < 1) { suggestions.classList.remove('show'); return; }
+
+            if (query.length < 1) {
+                suggestions.classList.remove('show');
+                return;
+            }
+
             debounceTimer = setTimeout(async () => {
                 try {
                     const items = await fetchFn(query);
+                    // ★ 현재 입력값 전달 (직접 검색 옵션 렌더링용)
                     this.renderSuggestions(suggestions, items, input, query);
-                } catch (error) { console.error('Autocomplete error:', error); }
+                } catch (error) {
+                    console.error('Autocomplete error:', error);
+                }
             }, 200);
         });
 
@@ -216,12 +209,14 @@ class LeasingSearchApp {
         });
 
         input.addEventListener('blur', () => {
+            // ★ blur 시 suggestion만 닫고 input 값은 유지
             setTimeout(() => suggestions.classList.remove('show'), 200);
         });
     }
 
     renderSuggestions(container, items, input, rawQuery = '') {
         if (!items || items.length === 0) {
+            // 매칭 결과 없어도 직접 검색 옵션은 표시
             if (rawQuery.length > 0) {
                 container.innerHTML = `
                     <div class="suggestion-item suggestion-direct" data-value="${this.escapeHtml(rawQuery)}">
@@ -240,6 +235,7 @@ class LeasingSearchApp {
             return;
         }
 
+        // ★ 상단에 "직접 검색" 항목 추가 (모바일에서 suggestion 강요 방지)
         const directItem = rawQuery.length > 0 ? `
             <div class="suggestion-item suggestion-direct" data-value="${this.escapeHtml(rawQuery)}">
                 <div class="suggestion-text">
@@ -268,10 +264,13 @@ class LeasingSearchApp {
                 e.preventDefault();
                 input.value = el.dataset.value;
                 container.classList.remove('show');
+                // ★ 직접 검색 항목 클릭 시 즉시 검색 실행
                 if (el.classList.contains('suggestion-direct')) {
                     setTimeout(() => this.performSearch(), 50);
                 }
             });
+
+            // 터치 이벤트도 동일하게 처리
             el.addEventListener('touchend', (e) => {
                 e.preventDefault();
                 input.value = el.dataset.value;
@@ -285,7 +284,7 @@ class LeasingSearchApp {
 
     async performSearch() {
         const searchType = document.getElementById('searchType').value;
-        const options = { searchType };
+        const options = {};
 
         if (searchType === 'building' || searchType === 'complex') {
             options.buildingName = document.getElementById('buildingName').value.trim();
@@ -302,8 +301,7 @@ class LeasingSearchApp {
             options.areaTo = parseFloat(document.getElementById('vacancyAreaTo').value) || 0;
         }
 
-        const hasCondition = ['buildingName','district','station','areaFrom','areaTo']
-            .some(k => options[k]);
+        const hasCondition = Object.values(options).some(v => v);
         if (!hasCondition) {
             alert('검색 조건을 입력해주세요.');
             return;
@@ -311,7 +309,7 @@ class LeasingSearchApp {
 
         try {
             this.showLoading('검색 중...');
-            this.currentSearchOptions = options;
+            // ★ searchVacancies 내부에서 최신버전 중복제거 자동 적용
             this.currentResults = await FirebaseService.searchVacancies(options);
             this.currentPage = 1;
             this.renderResults();
@@ -326,7 +324,7 @@ class LeasingSearchApp {
     async loadAll() {
         try {
             this.showLoading('전체 데이터 로드 중...');
-            this.currentSearchOptions = {};
+            // ★ loadAllDeduped: 최신버전 중복제거 적용
             this.currentResults = await FirebaseService.loadAllDeduped();
             this.currentPage = 1;
             this.renderResults();
@@ -346,195 +344,28 @@ class LeasingSearchApp {
         document.getElementById('searchType').value = 'building';
         this.onSearchTypeChange('building');
         this.currentResults = [];
-        this.currentGroups = [];
-        this.currentSearchOptions = {};
         this.currentPage = 1;
         this.renderResults();
     }
 
     formatPrice(value) {
-        if (value === null || value === undefined || value === '' || value === '-' || value === 0) return '-';
+        if (!value || value === '-' || value === '') return '-';
         const num = parseFloat(String(value).replace(/[^0-9.]/g, ''));
-        if (isNaN(num) || num === 0) return '-';
+        if (isNaN(num)) return value;
         return num.toLocaleString('ko-KR');
     }
-
-    // ===== ★ 그룹핑 헬퍼 =====
-
-    /**
-     * 행이 비어있는지 판단 — 면적/금액 모두 비어있으면 빈 행
-     */
-    isEmptyRow(item) {
-        const fields = [item.exclusiveArea, item.rentArea, item.depositPy, item.rentPy, item.maintenancePy];
-        return fields.every(v => !v || v === '-' || v === '' || parseFloat(v) === 0);
-    }
-
-    /**
-     * 발행일을 YYYY-MM 정규화
-     */
-    normalizeMonth(date) {
-        if (!date) return '';
-        const str = String(date).replace(/[^0-9]/g, '');
-        if (str.length >= 6) return `${str.slice(0,4)}-${str.slice(4,6)}`;
-        return str;
-    }
-
-    /**
-     * 발행연월 표시용 (YYYY.MM)
-     */
-    formatPublishMonth(date) {
-        const m = this.normalizeMonth(date);
-        return m ? m.replace('-', '.') : '-';
-    }
-
-    /**
-     * 그룹 키 = 빌딩명 + 발행회사 + 발행연월
-     */
-    makeGroupKey(item) {
-        const month = this.normalizeMonth(item.publishDate);
-        return `${(item.buildingName || '').trim()}__${(item.source || '').trim()}__${month}`;
-    }
-
-    /**
-     * 층 정렬 비교 (B2 < B1 < 1 < 2 ...)
-     */
-    compareFloor(a, b) {
-        const parse = (f) => {
-            if (!f) return 9999;
-            const str = String(f).trim();
-            if (/^B/i.test(str)) {
-                const num = parseInt(str.replace(/[^0-9]/g, '')) || 1;
-                return -num;
-            }
-            const num = parseInt(str.replace(/[^0-9]/g, ''));
-            return isNaN(num) ? 9999 : num;
-        };
-        return parse(a) - parse(b);
-    }
-
-    /**
-     * 그룹 내 행 정렬 — 면적조건 매칭 행을 상단으로
-     */
-    sortRowsInGroup(rows, areaFrom, areaTo) {
-        const hasAreaFilter = (areaFrom && areaFrom > 0) || (areaTo && areaTo > 0);
-
-        if (!hasAreaFilter) {
-            return rows
-                .sort((a, b) => this.compareFloor(a.floor, b.floor))
-                .map((r, i) => ({ ...r, _isMatch: false, _isTop: i === 0 }));
-        }
-
-        const isMatch = (row) => {
-            const ex = parseFloat(row.exclusiveArea) || 0;
-            const rt = parseFloat(row.rentArea) || 0;
-            const area = ex || rt;
-            if (!area) return false;
-            if (areaFrom > 0 && area < areaFrom) return false;
-            if (areaTo > 0 && area > areaTo) return false;
-            return true;
-        };
-
-        const matched = rows.filter(isMatch).sort((a, b) => this.compareFloor(a.floor, b.floor));
-        const rest = rows.filter(r => !isMatch(r)).sort((a, b) => this.compareFloor(a.floor, b.floor));
-
-        return [...matched, ...rest].map((r, i) => ({
-            ...r,
-            _isMatch: isMatch(r),
-            _isTop: i === 0
-        }));
-    }
-
-    /**
-     * 그룹의 우선순위 (정렬 키)
-     * - 면적 검색: 매칭 행이 있는 그룹 우선
-     * - 그 외: 발행일 최신 우선
-     */
-    groupSortKey(group, hasAreaFilter) {
-        const matchCount = group.rows.filter(r => r._isMatch).length;
-        const monthNum = parseInt(this.normalizeMonth(group.publishDate).replace('-', '')) || 0;
-        if (hasAreaFilter) {
-            // matchCount 많은 순 → 발행일 최신 순
-            return [-matchCount, -monthNum];
-        }
-        return [-monthNum];
-    }
-
-    /**
-     * 검색 결과 → 그룹 카드로 변환
-     */
-    groupResults(items, options = {}) {
-        // 1. 빈 행 제거
-        const validItems = items.filter(item => !this.isEmptyRow(item));
-
-        // 2. 그룹핑
-        const groupMap = new Map();
-        validItems.forEach(item => {
-            const key = this.makeGroupKey(item);
-            if (!groupMap.has(key)) {
-                groupMap.set(key, {
-                    key,
-                    buildingName: item.buildingName,
-                    source: item.source,
-                    publishDate: item.publishDate,
-                    publishMonth: this.formatPublishMonth(item.publishDate),
-                    address: item.address,
-                    nearbyStation: item.nearbyStation,
-                    coordinates: item.coordinates,
-                    pageImageUrl: item.pageImageUrl,
-                    documentId: item.documentId,
-                    representativeId: item.id, // 카드 대표 row id (이미지 뷰어/체크박스용)
-                    rows: []
-                });
-            }
-            const g = groupMap.get(key);
-            g.rows.push(item);
-            // 주소/좌표 보강 (첫 row가 없을 경우 다른 row에서 가져옴)
-            if (!g.address && item.address) g.address = item.address;
-            if (!g.nearbyStation && item.nearbyStation) g.nearbyStation = item.nearbyStation;
-            if (!g.coordinates && item.coordinates) g.coordinates = item.coordinates;
-        });
-
-        // 3. 각 그룹 내부 행 정렬
-        const areaFrom = options.areaFrom || 0;
-        const areaTo = options.areaTo || 0;
-        const groups = Array.from(groupMap.values());
-        groups.forEach(g => {
-            g.rows = this.sortRowsInGroup(g.rows, areaFrom, areaTo);
-        });
-
-        // 4. 그룹 자체 정렬
-        const hasAreaFilter = areaFrom > 0 || areaTo > 0;
-        groups.sort((a, b) => {
-            const ka = this.groupSortKey(a, hasAreaFilter);
-            const kb = this.groupSortKey(b, hasAreaFilter);
-            for (let i = 0; i < ka.length; i++) {
-                if (ka[i] !== kb[i]) return ka[i] - kb[i];
-            }
-            return 0;
-        });
-
-        return groups;
-    }
-
-    // ===== 렌더링 =====
 
     renderResults() {
         const tbody = document.getElementById('resultsBody');
         const countBadge = document.getElementById('resultCount');
+        countBadge.textContent = this.currentResults.length;
 
-        // 그룹핑
-        const groups = this.groupResults(this.currentResults, this.currentSearchOptions);
-        this.currentGroups = groups;
-
-        const totalRows = groups.reduce((sum, g) => sum + g.rows.length, 0);
-        countBadge.textContent = `${groups.length}개 (${totalRows}건)`;
-
-        if (groups.length === 0) {
+        if (this.currentResults.length === 0) {
             tbody.innerHTML = `
                 <tr>
                     <td colspan="12" class="text-center text-muted py-5">
                         <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-                        ${this.currentResults.length === 0 ? '검색 결과가 없습니다.' : '유효한 임대안내문이 없습니다.'}
+                        검색 결과가 없습니다.
                     </td>
                 </tr>
             `;
@@ -543,131 +374,45 @@ class LeasingSearchApp {
         }
 
         const startIdx = (this.currentPage - 1) * this.pageSize;
-        const endIdx = Math.min(startIdx + this.pageSize, groups.length);
-        const pageGroups = groups.slice(startIdx, endIdx);
+        const endIdx = Math.min(startIdx + this.pageSize, this.currentResults.length);
+        const pageItems = this.currentResults.slice(startIdx, endIdx);
 
-        tbody.innerHTML = pageGroups.map((g, idx) =>
-            `<tr class="group-card-row"><td colspan="12" class="p-0 border-0">${this.renderGroupCard(g, startIdx + idx)}</td></tr>`
-        ).join('');
+        tbody.innerHTML = pageItems.map(item => `
+            <tr data-id="${item.id}">
+                <td>
+                    <input type="checkbox" class="form-check-input item-checkbox"
+                           data-id="${item.id}" ${this.selectedItems.has(item.id) ? 'checked' : ''}>
+                </td>
+                <td><strong>${this.escapeHtml(item.buildingName)}</strong></td>
+                <td>${this.escapeHtml(item.address) || '-'}</td>
+                <td>${this.escapeHtml(item.nearbyStation) || '-'}</td>
+                <td><span class="badge bg-secondary">${this.escapeHtml(item.floor)}</span></td>
+                <td class="price-cell"><span class="price-value">${item.exclusiveArea ? parseFloat(item.exclusiveArea).toFixed(1) : '-'}</span></td>
+                <td class="price-cell"><span class="price-value">${item.rentArea ? parseFloat(item.rentArea).toFixed(1) : '-'}</span></td>
+                <td class="price-cell"><span class="price-value">${this.formatPrice(item.depositPy) || '-'}</span></td>
+                <td class="price-cell"><span class="price-value">${this.formatPrice(item.rentPy) || '-'}</span></td>
+                <td class="price-cell"><span class="price-value">${this.formatPrice(item.maintenancePy) || '-'}</span></td>
+                <td>${this.renderSourceBadge(item.source)}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary view-image-btn"
+                            data-item-id="${item.id}"
+                            data-image="${this.escapeHtml(item.pageImageUrl)}">
+                        <i class="bi bi-image"></i> 보기
+                    </button>
+                    ${item.coordinates ? `
+                        <button class="btn btn-sm btn-outline-success view-map-btn"
+                                data-lat="${item.coordinates.lat}"
+                                data-lng="${item.coordinates.lng}"
+                                data-name="${this.escapeHtml(item.buildingName)}">
+                            <i class="bi bi-geo-alt"></i>
+                        </button>
+                    ` : ''}
+                </td>
+            </tr>
+        `).join('');
 
         this.bindResultEvents();
         this.renderPagination();
-    }
-
-    renderGroupCard(group, idx) {
-        const isMultiRow = group.rows.length > 1;
-        const topRow = group.rows[0];
-        const restRows = group.rows.slice(1);
-        const sourceColor = this.getSourceColor(group.source);
-        const collapseId = `groupRows-${idx}`;
-
-        return `
-        <div class="group-card" data-group-key="${this.escapeHtml(group.key)}">
-            <div class="group-card-header">
-                <div class="group-card-title">
-                    <i class="bi bi-building"></i>
-                    <strong>${this.escapeHtml(group.buildingName) || '-'}</strong>
-                    <span class="source-badge-inline" style="background:${sourceColor}">
-                        ${this.escapeHtml(group.source) || '-'}
-                    </span>
-                </div>
-                <div class="group-card-month">
-                    <i class="bi bi-calendar3"></i> ${this.escapeHtml(group.publishMonth)}
-                </div>
-            </div>
-
-            ${(group.address || group.nearbyStation) ? `
-                <div class="group-card-sub">
-                    ${group.address ? `<span><i class="bi bi-geo-alt"></i> ${this.escapeHtml(group.address)}</span>` : ''}
-                    ${group.nearbyStation ? `<span><i class="bi bi-signpost"></i> ${this.escapeHtml(group.nearbyStation)}</span>` : ''}
-                </div>
-            ` : ''}
-
-            <div class="group-row-list group-row-list-top">
-                ${this.renderGroupRow(topRow, true)}
-            </div>
-
-            ${isMultiRow ? `
-                <div class="collapse" id="${collapseId}">
-                    <div class="group-row-list group-row-list-rest">
-                        ${restRows.map(r => this.renderGroupRow(r, false)).join('')}
-                    </div>
-                </div>
-                <button class="group-card-toggle collapsed" type="button"
-                        data-bs-toggle="collapse" data-bs-target="#${collapseId}"
-                        aria-expanded="false" aria-controls="${collapseId}">
-                    <span class="toggle-text-open">
-                        <i class="bi bi-chevron-down"></i> ${restRows.length}개 층 더보기
-                    </span>
-                    <span class="toggle-text-close">
-                        <i class="bi bi-chevron-up"></i> 접기
-                    </span>
-                </button>
-            ` : ''}
-
-            <div class="group-card-actions">
-                <button class="btn btn-sm btn-outline-primary view-image-btn"
-                        data-item-id="${topRow.id}">
-                    <i class="bi bi-image"></i> 원본보기
-                </button>
-                ${group.coordinates ? `
-                    <button class="btn btn-sm btn-outline-success view-map-btn"
-                            data-lat="${group.coordinates.lat}"
-                            data-lng="${group.coordinates.lng}"
-                            data-name="${this.escapeHtml(group.buildingName)}">
-                        <i class="bi bi-geo-alt"></i> 지도
-                    </button>
-                ` : ''}
-                <label class="form-check form-check-inline ms-auto mb-0">
-                    <input type="checkbox" class="form-check-input item-checkbox"
-                           data-id="${topRow.id}"
-                           ${this.selectedItems.has(topRow.id) ? 'checked' : ''}>
-                    <span class="form-check-label small ms-1">선택</span>
-                </label>
-            </div>
-        </div>
-        `;
-    }
-
-    renderGroupRow(row, isTop) {
-        const matchClass = row._isMatch ? 'row-matched' : '';
-        const topClass = isTop ? 'is-top' : '';
-        const matchBadge = row._isMatch
-            ? '<span class="match-badge"><i class="bi bi-check-circle-fill"></i> 매칭</span>'
-            : '';
-
-        return `
-        <div class="group-row ${matchClass} ${topClass}">
-            <div class="row-floor">
-                <span class="floor-badge">${this.escapeHtml(row.floor) || '-'}</span>
-                ${matchBadge}
-            </div>
-            <div class="row-areas">
-                <div class="area-item">
-                    <span class="area-label">전용</span>
-                    <span class="area-value">${row.exclusiveArea ? parseFloat(row.exclusiveArea).toFixed(1) : '-'}</span>
-                </div>
-                <div class="area-item">
-                    <span class="area-label">임대</span>
-                    <span class="area-value">${row.rentArea ? parseFloat(row.rentArea).toFixed(1) : '-'}</span>
-                </div>
-            </div>
-            <div class="row-prices">
-                <div class="price-item price-deposit">
-                    <span class="price-label">보증금</span>
-                    <span class="price-value">${this.formatPrice(row.depositPy)}</span>
-                </div>
-                <div class="price-item price-rent">
-                    <span class="price-label">임대료</span>
-                    <span class="price-value">${this.formatPrice(row.rentPy)}</span>
-                </div>
-                <div class="price-item price-maint">
-                    <span class="price-label">관리비</span>
-                    <span class="price-value">${this.formatPrice(row.maintenancePy)}</span>
-                </div>
-            </div>
-        </div>
-        `;
     }
 
     bindResultEvents() {
@@ -701,7 +446,7 @@ class LeasingSearchApp {
     }
 
     renderPagination() {
-        const totalPages = Math.ceil(this.currentGroups.length / this.pageSize);
+        const totalPages = Math.ceil(this.currentResults.length / this.pageSize);
         const pagination = document.getElementById('pagination');
         if (totalPages <= 1) { pagination.innerHTML = ''; return; }
 
@@ -763,18 +508,15 @@ class LeasingSearchApp {
         this.currentViewItem = item;
         this.currentDisplayPageNum = item.pageNum || 1;
         this.resetImageZoom();
-        this._zoom.rotation = 0;
-        this._zoom.fitMode = 'width';
 
         await this.loadArchives(item);
         this.updateImageViewer();
 
         const modal = new bootstrap.Modal(document.getElementById('imageViewerModal'));
         modal.show();
-        setTimeout(() => {
-            this.setupImageZoom();
-            this.applyFitMode();
-        }, 400);
+
+        // 모달 표시 후 핀치줌 설정
+        setTimeout(() => this.setupImageZoom(), 400);
     }
 
     async loadArchives(item) {
@@ -787,17 +529,11 @@ class LeasingSearchApp {
         const container = document.getElementById('archiveSelectContainer');
         if (this.archiveList.length <= 1) { container.classList.add('d-none'); return; }
         container.classList.remove('d-none');
-        // 최신순 정렬
-        this.archiveList.sort((a, b) => {
-            const ma = this.normalizeMonth(a.publishDate).replace('-', '');
-            const mb = this.normalizeMonth(b.publishDate).replace('-', '');
-            return mb.localeCompare(ma);
-        });
         select.innerHTML = this.archiveList.map((archive, idx) => {
             const isSelected = archive.documentId === currentItem.documentId ||
                                archive.publishDate === currentItem.publishDate;
             return `<option value="${idx}" ${isSelected ? 'selected' : ''}>
-                ${this.formatPublishMonth(archive.publishDate)} (${archive.source})
+                ${archive.publishDate} (${archive.source})
             </option>`;
         }).join('');
     }
@@ -820,8 +556,8 @@ class LeasingSearchApp {
     updateImageViewer() {
         const item = this.currentViewItem;
         if (!item) return;
-        document.getElementById('imageViewerTitle').textContent = `${item.buildingName} - ${item.floor || ''}`;
-        document.getElementById('imageViewerInfo').textContent = `출처: ${item.source} | 발행: ${this.formatPublishMonth(item.publishDate)}`;
+        document.getElementById('imageViewerTitle').textContent = `${item.buildingName} - ${item.floor}`;
+        document.getElementById('imageViewerInfo').textContent = `출처: ${item.source} | 발행: ${item.publishDate}`;
         document.getElementById('imageViewerDownload').href = item.pageImageUrl;
         this.loadImageWithFallback(item.pageImageUrl);
         document.getElementById('imageViewerPageInfo').textContent = `${item.source} ${this.currentDisplayPageNum}페이지`;
@@ -832,13 +568,9 @@ class LeasingSearchApp {
     loadImageWithFallback(url) {
         const imgEl = document.getElementById('imageViewerImg');
         imgEl.style.opacity = '0.5';
+        imgEl.style.transform = 'scale(1)'; // 줌 초기화
         const img = new Image();
-        img.onload = () => {
-            imgEl.src = url;
-            imgEl.style.opacity = '1';
-            document.getElementById('imageViewerDownload').href = url;
-            this.applyImageTransform();
-        };
+        img.onload = () => { imgEl.src = url; imgEl.style.opacity = '1'; document.getElementById('imageViewerDownload').href = url; };
         img.onerror = () => { imgEl.style.opacity = '1'; imgEl.src = url; };
         img.src = url;
     }
@@ -865,6 +597,8 @@ class LeasingSearchApp {
         return null;
     }
 
+    // ===== 페이지 이동 =====
+
     async showPrevPage() {
         if (this.isSearchingPage) return;
         const imgEl = document.getElementById('imageViewerImg');
@@ -889,7 +623,6 @@ class LeasingSearchApp {
             }
             imgEl.style.opacity = '1';
         }
-        this.applyImageTransform();
         this.isSearchingPage = false;
     }
 
@@ -917,7 +650,6 @@ class LeasingSearchApp {
             }
             imgEl.style.opacity = '1';
         }
-        this.applyImageTransform();
         this.isSearchingPage = false;
     }
 
@@ -937,7 +669,7 @@ class LeasingSearchApp {
         }
     }
 
-    // ===== 이미지 핀치줌 / 더블탭 줌 + 회전 + Fit 모드 =====
+    // ===== ★ 모바일 이미지 핀치줌 / 더블탭 줌 =====
 
     setupImageZoom() {
         const imgEl = document.getElementById('imageViewerImg');
@@ -945,14 +677,22 @@ class LeasingSearchApp {
         imgEl._zoomSetup = true;
 
         const z = this._zoom;
+        imgEl.style.transformOrigin = 'center center';
         imgEl.style.transition = 'transform 0.05s';
         imgEl.style.cursor = 'zoom-in';
 
         let isDragging = false;
         let dragStartX = 0, dragStartY = 0;
-        this._translate = { x: 0, y: 0 };
+        let translateX = 0, translateY = 0;
 
-        // 핀치줌
+        const applyTransform = () => {
+            imgEl.style.transform = z.scale > 1
+                ? `scale(${z.scale}) translate(${translateX / z.scale}px, ${translateY / z.scale}px)`
+                : 'scale(1) translate(0, 0)';
+            imgEl.style.cursor = z.scale > 1 ? 'grab' : 'zoom-in';
+        };
+
+        // 핀치줌 (2손가락)
         imgEl.addEventListener('touchstart', (e) => {
             if (e.touches.length === 2) {
                 e.preventDefault();
@@ -962,18 +702,20 @@ class LeasingSearchApp {
                 );
                 z.lastScale = z.scale;
             }
+            // 더블탭 감지
             if (e.touches.length === 1) {
                 const now = Date.now();
                 if (now - z.lastTapTime < 280) {
                     e.preventDefault();
                     if (z.scale > 1) {
                         z.scale = 1;
-                        this._translate.x = 0;
-                        this._translate.y = 0;
+                        translateX = 0;
+                        translateY = 0;
                     } else {
+                        // 탭한 위치 기준으로 2.5배 줌
                         z.scale = 2.5;
                     }
-                    this.applyImageTransform();
+                    applyTransform();
                 }
                 z.lastTapTime = now;
             }
@@ -987,129 +729,47 @@ class LeasingSearchApp {
                     e.touches[0].clientY - e.touches[1].clientY
                 );
                 z.scale = Math.min(Math.max(z.lastScale * (dist / z.startDist), 1), 5);
-                this.applyImageTransform();
+                applyTransform();
             } else if (e.touches.length === 1 && z.scale > 1) {
+                // 줌인 상태에서 드래그 패닝
                 e.preventDefault();
                 if (!isDragging) { isDragging = true; dragStartX = e.touches[0].clientX; dragStartY = e.touches[0].clientY; }
-                this._translate.x += (e.touches[0].clientX - dragStartX) * 0.5;
-                this._translate.y += (e.touches[0].clientY - dragStartY) * 0.5;
+                translateX += (e.touches[0].clientX - dragStartX) * 0.5;
+                translateY += (e.touches[0].clientY - dragStartY) * 0.5;
                 dragStartX = e.touches[0].clientX;
                 dragStartY = e.touches[0].clientY;
-                this.applyImageTransform();
+                applyTransform();
             }
         }, { passive: false });
 
         imgEl.addEventListener('touchend', () => {
             isDragging = false;
+            // 최소 스케일 보정
             if (z.scale < 1.05) {
-                z.scale = 1;
-                this._translate.x = 0;
-                this._translate.y = 0;
-                this.applyImageTransform();
+                z.scale = 1; translateX = 0; translateY = 0;
+                applyTransform();
             }
         });
 
+        // PC: 더블클릭 줌
         imgEl.addEventListener('dblclick', () => {
             z.scale = z.scale > 1 ? 1 : 2.5;
-            if (z.scale === 1) { this._translate.x = 0; this._translate.y = 0; }
-            this.applyImageTransform();
+            if (z.scale === 1) { translateX = 0; translateY = 0; }
+            applyTransform();
         });
-    }
-
-    applyImageTransform() {
-        const imgEl = document.getElementById('imageViewerImg');
-        if (!imgEl) return;
-        const z = this._zoom;
-        const t = this._translate || { x: 0, y: 0 };
-        const rot = z.rotation;
-        const scale = z.scale;
-        imgEl.style.transformOrigin = 'center center';
-        imgEl.style.transform = scale > 1
-            ? `rotate(${rot}deg) scale(${scale}) translate(${t.x / scale}px, ${t.y / scale}px)`
-            : `rotate(${rot}deg) scale(${scale})`;
-        imgEl.style.cursor = scale > 1 ? 'grab' : 'zoom-in';
     }
 
     resetImageZoom() {
-        const z = this._zoom;
-        z.scale = 1;
-        z.lastScale = 1;
-        this._translate = { x: 0, y: 0 };
         const imgEl = document.getElementById('imageViewerImg');
         if (imgEl) {
+            this._zoom.scale = 1;
+            this._zoom.lastScale = 1;
+            imgEl.style.transform = 'scale(1) translate(0,0)';
             imgEl.style.cursor = 'zoom-in';
-            this.applyImageTransform();
         }
     }
 
-    // ★ 회전 토글
-    toggleImageRotation() {
-        this._zoom.rotation = (this._zoom.rotation + 90) % 360;
-        this.applyImageTransform();
-        this.applyFitMode(); // 회전 시 fit 재적용
-
-        const btn = document.getElementById('imageRotateBtn');
-        if (btn) {
-            const angles = { 0: '', 90: '90°', 180: '180°', 270: '270°' };
-            btn.title = `회전 ${angles[this._zoom.rotation] || ''} (R)`;
-        }
-    }
-
-    // ★ Fit 모드 토글 (width ↔ all)
-    toggleFitMode() {
-        this._zoom.fitMode = this._zoom.fitMode === 'width' ? 'all' : 'width';
-        this.applyFitMode();
-    }
-
-    applyFitMode() {
-        const imgEl = document.getElementById('imageViewerImg');
-        const container = document.querySelector('#imageViewerModal .modal-body');
-        if (!imgEl || !container) return;
-
-        const isRotated = this._zoom.rotation === 90 || this._zoom.rotation === 270;
-        const containerW = container.clientWidth;
-        const containerH = container.clientHeight;
-
-        // 모든 인라인 스타일 초기화 후 모드별 재적용
-        imgEl.style.width = '';
-        imgEl.style.height = '';
-        imgEl.style.maxWidth = '';
-        imgEl.style.maxHeight = '';
-
-        if (this._zoom.fitMode === 'width') {
-            // 가로폭 fit: 컨테이너 가로폭에 맞춤 (회전 시 세로폭에 맞춤)
-            if (isRotated) {
-                imgEl.style.maxHeight = `${containerW}px`;
-                imgEl.style.width = 'auto';
-            } else {
-                imgEl.style.maxWidth = '100%';
-                imgEl.style.height = 'auto';
-            }
-        } else {
-            // 전체 fit: 컨테이너 안에 다 들어오게
-            if (isRotated) {
-                imgEl.style.maxWidth = `${containerH}px`;
-                imgEl.style.maxHeight = `${containerW}px`;
-            } else {
-                imgEl.style.maxWidth = '100%';
-                imgEl.style.maxHeight = `${containerH}px`;
-            }
-            imgEl.style.objectFit = 'contain';
-        }
-
-        const fitBtn = document.getElementById('imageFitBtn');
-        if (fitBtn) {
-            if (this._zoom.fitMode === 'width') {
-                fitBtn.innerHTML = '<i class="bi bi-arrows-expand"></i>';
-                fitBtn.title = '전체 맞춤 (F)';
-            } else {
-                fitBtn.innerHTML = '<i class="bi bi-arrows-fullscreen"></i>';
-                fitBtn.title = '가로폭 맞춤 (F)';
-            }
-        }
-    }
-
-    // ===== 전체화면 =====
+    // ===== ★ 전체화면 =====
 
     toggleImageFullscreen() {
         const modal = document.querySelector('#imageViewerModal .modal-dialog');
@@ -1117,12 +777,12 @@ class LeasingSearchApp {
         const imgContainer = document.querySelector('#imageViewerModal .modal-body');
 
         if (!this._zoom.isFullscreen) {
+            // 전체화면 진입
             modal.classList.add('modal-fullscreen');
             imgContainer.style.maxHeight = '100vh';
             btn.innerHTML = '<i class="bi bi-fullscreen-exit"></i>';
             btn.title = '전체화면 종료 (Esc)';
             this._zoom.isFullscreen = true;
-            setTimeout(() => this.applyFitMode(), 100);
         } else {
             this.exitImageFullscreen();
         }
@@ -1136,7 +796,6 @@ class LeasingSearchApp {
         if (imgContainer) imgContainer.style.maxHeight = '80vh';
         if (btn) { btn.innerHTML = '<i class="bi bi-fullscreen"></i>'; btn.title = '전체화면'; }
         this._zoom.isFullscreen = false;
-        setTimeout(() => this.applyFitMode(), 100);
     }
 
     // ===== 지도 =====
@@ -1172,9 +831,9 @@ class LeasingSearchApp {
     showError(message) { alert(message); }
 
     escapeHtml(text) {
-        if (text === null || text === undefined) return '';
+        if (!text) return '';
         const div = document.createElement('div');
-        div.textContent = String(text);
+        div.textContent = text;
         return div.innerHTML;
     }
 }

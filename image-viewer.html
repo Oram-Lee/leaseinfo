@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>임대안내문 이미지 뷰어</title>
     
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
     
@@ -23,20 +22,20 @@
         .viewer-header {
             background: #2c3e50;
             color: white;
-            padding: 10px 20px;
+            padding: 10px 16px;
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            gap: 12px;
             min-height: 60px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         
         .viewer-title {
-            font-size: 18px;
+            font-size: 17px;
             font-weight: 500;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             flex: 1;
             min-width: 0;
         }
@@ -47,81 +46,106 @@
             white-space: nowrap;
         }
         
-        .viewer-controls {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
         .close-button {
             background: rgba(255, 255, 255, 0.1);
             border: none;
             color: white;
-            width: 36px;
-            height: 36px;
+            width: 36px; height: 36px;
             border-radius: 4px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: background 0.2s;
+            flex-shrink: 0;
         }
+        .close-button:hover { background: rgba(255, 255, 255, 0.2); }
         
-        .close-button:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-        
-        /* 줌 컨트롤 */
-        .zoom-controls {
+        /* 컨트롤 그룹 */
+        .viewer-controls {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+            flex-wrap: wrap;
         }
+        
+        .control-btn {
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.25);
+            color: white;
+            padding: 6px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: background 0.15s;
+        }
+        .control-btn:hover { background: rgba(255,255,255,0.22); }
+        .control-btn.active {
+            background: #3498db;
+            border-color: #3498db;
+        }
+        .control-btn .label-text { font-size: 12px; }
         
         .zoom-select {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.25);
             color: white;
-            border-radius: 3px;
-            padding: 5px;
+            border-radius: 5px;
+            padding: 6px 8px;
             cursor: pointer;
+            font-size: 13px;
         }
+        .zoom-select option { background: #2c3e50; }
         
-        .zoom-select option {
-            background: #2c3e50;
+        .control-divider {
+            width: 1px;
+            height: 24px;
+            background: rgba(255,255,255,0.2);
+            margin: 0 2px;
         }
         
         /* 메인 뷰어 영역 */
         .viewer-container {
-            height: calc(100vh - 60px);
+            height: calc(100vh - 100px);
             overflow: auto;
             background: #1a252f;
             display: flex;
             justify-content: center;
-            align-items: flex-start;
+            align-items: center;
             padding: 20px;
+            position: relative;
+        }
+        
+        .image-stage {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 100%;
+            min-height: 100%;
         }
         
         .image-wrapper {
             background: white;
             box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            position: relative;
+            transition: transform 0.25s ease;
+            transform-origin: center center;
+            will-change: transform;
         }
         
         .image-wrapper img {
             display: block;
             max-width: 100%;
             height: auto;
-            transition: transform 0.3s ease;
         }
         
         /* 로딩 */
         .loading-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.8);
             display: flex;
             flex-direction: column;
@@ -129,88 +153,84 @@
             justify-content: center;
             z-index: 1000;
         }
-        
         .loading-spinner {
-            width: 50px;
-            height: 50px;
+            width: 50px; height: 50px;
             border: 5px solid #f3f3f3;
             border-top: 5px solid #3498db;
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
-        
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        
-        .loading-text {
-            margin-top: 20px;
-            font-size: 16px;
-            color: white;
-        }
+        .loading-text { margin-top: 20px; font-size: 16px; color: white; }
         
         /* 에러 메시지 */
-        .error-message {
-            text-align: center;
-            padding: 40px;
-            color: white;
-        }
-        
-        .error-icon {
-            font-size: 48px;
-            color: #e74c3c;
-            margin-bottom: 20px;
-        }
+        .error-message { text-align: center; padding: 40px; color: white; }
+        .error-icon { font-size: 48px; color: #e74c3c; margin-bottom: 20px; }
         
         /* 정보 바 */
         .info-bar {
             position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(0,0,0,0.8);
+            bottom: 0; left: 0; right: 0;
+            background: rgba(0,0,0,0.85);
             color: white;
             padding: 10px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 13px;
+            font-size: 12.5px;
+            z-index: 5;
         }
+        
+        /* Fit 모드 표시 */
+        .mode-indicator {
+            position: fixed;
+            top: 75px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.75);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 100;
+            pointer-events: none;
+        }
+        .mode-indicator.show { opacity: 1; }
         
         /* 모바일 반응형 */
         @media (max-width: 768px) {
             .viewer-header {
                 flex-wrap: wrap;
-                gap: 10px;
+                gap: 8px;
                 padding: 10px;
+                min-height: auto;
             }
-            
             .viewer-title {
                 font-size: 14px;
                 order: 2;
-                width: 100%;
+                width: calc(100% - 50px);
             }
-            
-            .close-button {
-                order: 1;
-            }
-            
-            .zoom-controls {
+            .close-button { order: 1; }
+            .viewer-controls {
                 order: 3;
                 width: 100%;
-                justify-content: center;
+                justify-content: space-between;
             }
-            
-            .viewer-container {
-                height: calc(100vh - 120px);
-                padding: 10px;
-            }
-            
+            .control-btn { padding: 7px 10px; font-size: 13px; }
+            .control-btn .label-text { display: none; }
+            .control-divider { display: none; }
+            .viewer-container { padding: 8px; }
             .info-bar {
                 flex-direction: column;
-                gap: 5px;
+                gap: 4px;
                 text-align: center;
+                font-size: 11px;
+                padding: 7px 12px;
             }
         }
     </style>
@@ -228,33 +248,56 @@
         </div>
         
         <div class="viewer-controls">
-            <div class="zoom-controls">
-                <button id="zoomOut" class="btn btn-sm btn-outline-light">
-                    <i class="bi bi-zoom-out"></i>
-                </button>
-                <select id="zoomSelect" class="zoom-select">
-                    <option value="0.5">50%</option>
-                    <option value="0.75">75%</option>
-                    <option value="1" selected>100%</option>
-                    <option value="1.25">125%</option>
-                    <option value="1.5">150%</option>
-                    <option value="2">200%</option>
-                </select>
-                <button id="zoomIn" class="btn btn-sm btn-outline-light">
-                    <i class="bi bi-zoom-in"></i>
-                </button>
-            </div>
+            <!-- 회전 -->
+            <button id="rotateBtn" class="control-btn" title="90도 회전 (R)">
+                <i class="bi bi-arrow-clockwise"></i>
+                <span class="label-text">회전</span>
+            </button>
             
-            <a id="downloadBtn" href="#" class="btn btn-sm btn-outline-light" download>
-                <i class="bi bi-download"></i> 다운로드
+            <!-- Fit 모드 -->
+            <button id="fitBtn" class="control-btn" title="맞춤 모드 전환 (F)">
+                <i class="bi bi-arrows-expand"></i>
+                <span class="label-text">가로폭</span>
+            </button>
+            
+            <div class="control-divider"></div>
+            
+            <!-- 줌 -->
+            <button id="zoomOut" class="control-btn" title="축소">
+                <i class="bi bi-zoom-out"></i>
+            </button>
+            <select id="zoomSelect" class="zoom-select">
+                <option value="0.5">50%</option>
+                <option value="0.75">75%</option>
+                <option value="1" selected>100%</option>
+                <option value="1.25">125%</option>
+                <option value="1.5">150%</option>
+                <option value="2">200%</option>
+                <option value="3">300%</option>
+            </select>
+            <button id="zoomIn" class="control-btn" title="확대">
+                <i class="bi bi-zoom-in"></i>
+            </button>
+            
+            <div class="control-divider"></div>
+            
+            <!-- 다운로드 -->
+            <a id="downloadBtn" href="#" class="control-btn" download title="다운로드">
+                <i class="bi bi-download"></i>
+                <span class="label-text">다운로드</span>
             </a>
         </div>
     </div>
     
+    <!-- 모드 알림 -->
+    <div id="modeIndicator" class="mode-indicator"></div>
+    
     <!-- 이미지 뷰어 -->
     <div class="viewer-container" id="viewerContainer">
-        <div class="image-wrapper">
-            <img id="mainImage" src="" alt="임대안내문">
+        <div class="image-stage">
+            <div class="image-wrapper" id="imageWrapper">
+                <img id="mainImage" src="" alt="임대안내문">
+            </div>
         </div>
     </div>
     
@@ -274,12 +317,15 @@
     class ImageViewer {
         constructor() {
             this.scale = 1;
+            this.rotation = 0;     // 0, 90, 180, 270
+            this.fitMode = 'width'; // 'width' | 'all'
             this.imageUrl = '';
+            this.naturalWidth = 0;
+            this.naturalHeight = 0;
             this.init();
         }
         
         init() {
-            // URL 파라미터 파싱
             const params = new URLSearchParams(window.location.search);
             this.imageUrl = params.get('image') || '';
             const title = params.get('title') ? decodeURIComponent(params.get('title')) : '임대안내문';
@@ -288,15 +334,14 @@
             const source = params.get('source') ? decodeURIComponent(params.get('source')) : '';
             const publishDate = params.get('date') ? decodeURIComponent(params.get('date')) : '';
             
-            // UI 업데이트
             document.getElementById('documentTitle').textContent = title;
-            document.getElementById('buildingInfo').textContent = `${building} ${floor}`;
-            document.getElementById('sourceInfo').textContent = `출처: ${source} | 발행: ${publishDate}`;
+            document.getElementById('buildingInfo').textContent = `${building} ${floor}`.trim() || '-';
+            document.getElementById('sourceInfo').textContent = source || publishDate
+                ? `출처: ${source || '-'} | 발행: ${publishDate || '-'}`
+                : '-';
             
-            // 이벤트 바인딩
             this.bindEvents();
             
-            // 이미지 로드
             if (this.imageUrl) {
                 this.loadImage(this.imageUrl);
             } else {
@@ -309,9 +354,7 @@
             document.getElementById('closeViewer').addEventListener('click', () => {
                 window.close();
                 setTimeout(() => {
-                    if (window.history.length > 1) {
-                        window.history.back();
-                    }
+                    if (window.history.length > 1) window.history.back();
                 }, 100);
             });
             
@@ -320,11 +363,24 @@
             document.getElementById('zoomOut').addEventListener('click', () => this.zoomOut());
             document.getElementById('zoomSelect').addEventListener('change', (e) => {
                 this.scale = parseFloat(e.target.value);
-                this.applyZoom();
+                this.applyTransform();
             });
+            
+            // 회전
+            document.getElementById('rotateBtn').addEventListener('click', () => this.rotate());
+            
+            // Fit 모드
+            document.getElementById('fitBtn').addEventListener('click', () => this.toggleFit());
             
             // 다운로드
             document.getElementById('downloadBtn').href = this.imageUrl;
+            
+            // 윈도우 리사이즈 시 fit 재적용
+            let resizeTimer = null;
+            window.addEventListener('resize', () => {
+                if (resizeTimer) clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(() => this.applyFit(), 150);
+            });
             
             // 키보드 단축키
             document.addEventListener('keydown', (e) => {
@@ -334,7 +390,60 @@
                     this.zoomIn();
                 } else if (e.key === '-') {
                     this.zoomOut();
+                } else if (e.key === 'r' || e.key === 'R') {
+                    this.rotate();
+                } else if (e.key === 'f' || e.key === 'F') {
+                    this.toggleFit();
+                } else if (e.key === '0') {
+                    this.scale = 1;
+                    this.rotation = 0;
+                    this.applyFit();
                 }
+            });
+            
+            // 모바일 핀치줌 / 더블탭
+            this.setupTouchGestures();
+        }
+        
+        setupTouchGestures() {
+            const wrapper = document.getElementById('imageWrapper');
+            let startDist = 0, lastScale = 1, lastTapTime = 0;
+            
+            wrapper.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 2) {
+                    e.preventDefault();
+                    startDist = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    lastScale = this.scale;
+                } else if (e.touches.length === 1) {
+                    const now = Date.now();
+                    if (now - lastTapTime < 280) {
+                        e.preventDefault();
+                        this.scale = this.scale > 1 ? 1 : 2.5;
+                        this.applyTransform();
+                    }
+                    lastTapTime = now;
+                }
+            }, { passive: false });
+            
+            wrapper.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 2) {
+                    e.preventDefault();
+                    const dist = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    this.scale = Math.min(Math.max(lastScale * (dist / startDist), 0.25), 5);
+                    this.applyTransform();
+                }
+            }, { passive: false });
+            
+            // PC 더블클릭
+            wrapper.addEventListener('dblclick', () => {
+                this.scale = this.scale > 1 ? 1 : 2.5;
+                this.applyTransform();
             });
         }
         
@@ -342,7 +451,18 @@
             const img = document.getElementById('mainImage');
             
             img.onload = () => {
+                this.naturalWidth = img.naturalWidth;
+                this.naturalHeight = img.naturalHeight;
                 document.getElementById('loadingOverlay').style.display = 'none';
+                
+                // 가로장표 자동 감지: 가로/세로 비율이 1.4 이상이고 모바일 세로 화면이면 자동 회전 권장
+                const isLandscape = this.naturalWidth / this.naturalHeight > 1.4;
+                const isMobilePortrait = window.innerWidth < 768 && window.innerHeight > window.innerWidth;
+                if (isLandscape && isMobilePortrait) {
+                    this.showModeIndicator('💡 가로장표 감지 — R키 또는 회전 버튼으로 90도 회전');
+                }
+                
+                this.applyFit();
             };
             
             img.onerror = () => {
@@ -354,25 +474,88 @@
         }
         
         zoomIn() {
-            this.scale = Math.min(this.scale + 0.25, 3);
-            this.applyZoom();
+            this.scale = Math.min(this.scale + 0.25, 5);
+            this.applyTransform();
         }
         
         zoomOut() {
             this.scale = Math.max(this.scale - 0.25, 0.25);
-            this.applyZoom();
+            this.applyTransform();
         }
         
-        applyZoom() {
+        rotate() {
+            this.rotation = (this.rotation + 90) % 360;
+            this.scale = 1; // 회전 시 스케일 초기화
+            this.applyFit(); // fit 다시 적용 (회전 방향에 맞춰)
+            this.showModeIndicator(`회전 ${this.rotation}°`);
+        }
+        
+        toggleFit() {
+            this.fitMode = this.fitMode === 'width' ? 'all' : 'width';
+            this.scale = 1;
+            this.applyFit();
+            
+            const btn = document.getElementById('fitBtn');
+            const labelText = btn.querySelector('.label-text');
+            if (this.fitMode === 'width') {
+                btn.innerHTML = '<i class="bi bi-arrows-expand"></i><span class="label-text">가로폭</span>';
+                this.showModeIndicator('가로폭 맞춤 모드');
+            } else {
+                btn.innerHTML = '<i class="bi bi-arrows-fullscreen"></i><span class="label-text">전체</span>';
+                this.showModeIndicator('전체 맞춤 모드');
+            }
+        }
+        
+        /**
+         * Fit 적용 — 컨테이너 크기와 회전 상태를 고려해 이미지 wrapper 크기 결정
+         */
+        applyFit() {
+            if (!this.naturalWidth) return;
+            
+            const wrapper = document.getElementById('imageWrapper');
             const img = document.getElementById('mainImage');
-            img.style.transform = `scale(${this.scale})`;
-            img.style.transformOrigin = 'top center';
+            const container = document.getElementById('viewerContainer');
             
-            // 줌 선택 박스 업데이트
+            const cW = container.clientWidth - 40;  // padding
+            const cH = container.clientHeight - 40;
+            
+            const isRotated = this.rotation === 90 || this.rotation === 270;
+            // 회전 시 실제 표시되는 너비/높이는 swap됨
+            const effectiveW = isRotated ? this.naturalHeight : this.naturalWidth;
+            const effectiveH = isRotated ? this.naturalWidth : this.naturalHeight;
+            
+            let targetW, targetH;
+            if (this.fitMode === 'width') {
+                // 가로폭에 맞춤: 폭을 컨테이너 폭에 fit
+                targetW = cW;
+                targetH = (effectiveH / effectiveW) * cW;
+            } else {
+                // 전체 맞춤: 컨테이너 안에 모두 들어오게
+                const scaleW = cW / effectiveW;
+                const scaleH = cH / effectiveH;
+                const fitScale = Math.min(scaleW, scaleH);
+                targetW = effectiveW * fitScale;
+                targetH = effectiveH * fitScale;
+            }
+            
+            // wrapper에는 실제 회전 전 이미지 크기를 적용 (회전은 transform으로)
+            if (isRotated) {
+                img.style.width = `${targetH}px`;
+                img.style.height = `${targetW}px`;
+            } else {
+                img.style.width = `${targetW}px`;
+                img.style.height = `${targetH}px`;
+            }
+            
+            this.applyTransform();
+        }
+        
+        applyTransform() {
+            const wrapper = document.getElementById('imageWrapper');
+            wrapper.style.transform = `rotate(${this.rotation}deg) scale(${this.scale})`;
+            
+            // 줌 select 동기화
             const select = document.getElementById('zoomSelect');
-            const percentage = Math.round(this.scale * 100);
-            
-            // 기존 옵션에 없으면 가장 가까운 값 선택
             let found = false;
             for (let option of select.options) {
                 if (parseFloat(option.value) === this.scale) {
@@ -381,21 +564,23 @@
                     break;
                 }
             }
-            
             if (!found) {
-                // 현재 값에 가장 가까운 옵션 선택
                 let closest = select.options[0];
                 let closestDiff = Math.abs(parseFloat(closest.value) - this.scale);
-                
                 for (let option of select.options) {
                     const diff = Math.abs(parseFloat(option.value) - this.scale);
-                    if (diff < closestDiff) {
-                        closest = option;
-                        closestDiff = diff;
-                    }
+                    if (diff < closestDiff) { closest = option; closestDiff = diff; }
                 }
                 select.value = closest.value;
             }
+        }
+        
+        showModeIndicator(text) {
+            const ind = document.getElementById('modeIndicator');
+            ind.textContent = text;
+            ind.classList.add('show');
+            clearTimeout(this._indicatorTimer);
+            this._indicatorTimer = setTimeout(() => ind.classList.remove('show'), 1800);
         }
         
         showError(message) {
@@ -413,7 +598,6 @@
         }
     }
     
-    // 초기화
     document.addEventListener('DOMContentLoaded', () => {
         new ImageViewer();
     });

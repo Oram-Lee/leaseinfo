@@ -49,285 +49,14 @@
         .suggestion-item:hover, .suggestion-item.active { background-color: #e9f3ff; }
         .suggestion-text { font-weight: 500; color: #333; }
         .suggestion-subtext { display: block; margin-top: 2px; font-size: 12px; }
+        
+        /* ★ 직접 검색 항목 */
         .suggestion-direct { background-color: #f0f7ff; }
         .suggestion-direct:hover { background-color: #d9ecff; }
-        .suggestion-divider { height: 1px; background: #dee2e6; margin: 2px 0; }
         
-        /* ===== 그룹 카드 (v2) ===== */
-        #resultsTable { width: 100%; }
-        #resultsTable thead { display: none; }
-        #resultsTable tbody { display: block; width: 100%; }
-        #resultsTable tr.group-card-row {
-            display: block;
-            width: 100%;
-            border: none;
-            background: transparent;
-            margin: 0;
-        }
-        #resultsTable tr.group-card-row td {
-            display: block;
-            padding: 0 !important;
-            border: none !important;
-            background: transparent !important;
-            width: 100%;
-        }
-        /* 빈 결과 메시지용 */
-        #resultsTable tbody tr td[colspan]:not(.p-0) {
-            display: flex !important;
-            justify-content: center; align-items: center;
-            flex-direction: column;
-            padding: 40px 20px !important;
-            background: #fff !important;
-            border: 1px dashed #dee2e6 !important;
-            border-radius: 10px;
-        }
-        
-        .group-card {
-            background: white;
-            border: 1px solid #dee2e6;
-            border-radius: 12px;
-            margin-bottom: 14px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            transition: box-shadow 0.2s;
-        }
-        .group-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.1); }
-        
-        .group-card-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 12px 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .group-card-title {
-            display: flex;
-            align-items: center;
-            gap: 9px;
-            flex-wrap: wrap;
-            min-width: 0;
-            flex: 1;
-        }
-        .group-card-title i.bi-building { font-size: 18px; opacity: 0.9; }
-        .group-card-title strong {
-            font-size: 16px;
-            font-weight: 600;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 100%;
-        }
-        .source-badge-inline {
-            font-size: 11px;
-            padding: 3px 10px;
-            border-radius: 11px;
-            color: white;
-            font-weight: 500;
-            white-space: nowrap;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-        }
-        .group-card-month {
-            font-size: 13px;
-            background: rgba(255,255,255,0.2);
-            padding: 5px 11px;
-            border-radius: 14px;
-            white-space: nowrap;
-            font-weight: 500;
-        }
-        .group-card-sub {
-            padding: 9px 16px;
-            background: #f8f9fa;
-            color: #555;
-            font-size: 12.5px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 14px;
-        }
-        .group-card-sub i { color: #6c757d; margin-right: 3px; }
-        
-        /* 행 리스트 */
-        .group-row-list {
-            background: white;
-        }
-        .group-row {
-            padding: 12px 16px;
-            border-bottom: 1px solid #f1f3f4;
-            display: grid;
-            grid-template-columns: minmax(70px, auto) minmax(140px, 1fr) minmax(220px, 1.6fr);
-            gap: 16px;
-            align-items: center;
-            transition: background 0.15s;
-        }
-        .group-row:last-child { border-bottom: none; }
-        
-        .group-row.is-top { background: #fffdf5; }
-        .group-row.row-matched {
-            background: linear-gradient(90deg, #fff4e6 0%, #fffaf0 100%);
-            border-left: 3px solid #fd7e14;
-            padding-left: 13px;
-        }
-        .group-row.is-top.row-matched {
-            background: linear-gradient(90deg, #ffeacc 0%, #fff4e0 100%);
-        }
-        
-        .row-floor {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-        .floor-badge {
-            display: inline-block;
-            padding: 5px 11px;
-            background: #495057;
-            color: white;
-            font-size: 13px;
-            font-weight: 600;
-            border-radius: 6px;
-            min-width: 36px;
-            text-align: center;
-        }
-        .row-matched .floor-badge { background: #fd7e14; }
-        .match-badge {
-            display: inline-block;
-            padding: 2px 7px;
-            font-size: 10px;
-            color: #fd7e14;
-            font-weight: 700;
-            background: #fff;
-            border: 1px solid #fd7e14;
-            border-radius: 8px;
-        }
-        
-        .row-areas {
-            display: flex;
-            gap: 16px;
-            align-items: center;
-        }
-        .area-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-width: 48px;
-        }
-        .area-label {
-            font-size: 10.5px;
-            color: #6c757d;
-            font-weight: 600;
-            margin-bottom: 2px;
-        }
-        .area-value {
-            font-size: 14.5px;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-        
-        .row-prices {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 8px;
-        }
-        .price-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            padding: 4px 2px;
-        }
-        .price-label {
-            font-size: 10.5px;
-            font-weight: 700;
-            margin-bottom: 2px;
-        }
-        .price-deposit .price-label { color: #e74c3c; }
-        .price-rent .price-label { color: #3498db; }
-        .price-maint .price-label { color: #27ae60; }
-        .price-value {
-            font-size: 13px;
-            font-weight: 500;
-            color: #2c3e50;
-            white-space: nowrap;
-        }
-        
-        /* 더보기 토글 */
-        .group-card-toggle {
-            border: none;
-            border-top: 1px solid #eee;
-            background: #f8f9fa;
-            color: #555;
-            font-size: 13px;
-            padding: 10px;
-            width: 100%;
-            text-align: center;
-            cursor: pointer;
-            transition: background 0.15s;
-        }
-        .group-card-toggle:hover { background: #e9ecef; color: #333; }
-        .group-card-toggle .toggle-text-close { display: none; }
-        .group-card-toggle:not(.collapsed) .toggle-text-open { display: none; }
-        .group-card-toggle:not(.collapsed) .toggle-text-close { display: inline; }
-        
-        /* 카드 액션 */
-        .group-card-actions {
-            background: #f8f9fa;
-            padding: 10px 16px;
-            border-top: 1px solid #eee;
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .group-card-actions .form-check-input { width: 18px; height: 18px; cursor: pointer; }
-        
-        /* 모바일 적응 (≤768px) */
-        @media (max-width: 768px) {
-            .group-card-header { padding: 11px 14px; }
-            .group-card-title strong { font-size: 14.5px; }
-            .group-card-month { font-size: 12px; padding: 4px 9px; }
-            .source-badge-inline { font-size: 10.5px; padding: 2px 8px; }
-            
-            .group-card-sub { padding: 8px 14px; font-size: 11.5px; gap: 10px; }
-            
-            .group-row {
-                grid-template-columns: 1fr;
-                gap: 10px;
-                padding: 12px 14px;
-            }
-            .row-floor {
-                justify-content: space-between;
-                width: 100%;
-            }
-            .row-areas {
-                justify-content: flex-start;
-                gap: 24px;
-                padding-left: 4px;
-            }
-            .area-item { align-items: flex-start; min-width: 0; }
-            .row-prices { gap: 4px; }
-            .price-value { font-size: 12.5px; }
-            .price-label { font-size: 10px; }
-            
-            .group-card-actions { padding: 9px 14px; }
-            .group-card-actions .btn { font-size: 12.5px; padding: 6px 11px; }
-        }
-        
-        @media (max-width: 375px) {
-            .group-card-title strong { font-size: 13.5px; }
-            .row-areas { gap: 18px; }
-            .price-value { font-size: 12px; }
-        }
-        
-        /* PC: 와이드 카드에서 더 여유롭게 */
-        @media (min-width: 1200px) {
-            .group-row {
-                grid-template-columns: minmax(80px, auto) minmax(180px, 1fr) minmax(280px, 1.4fr);
-                padding: 14px 18px;
-            }
-            .area-value { font-size: 15.5px; }
-            .price-value { font-size: 13.5px; }
+        /* ★ suggestion 구분선 */
+        .suggestion-divider {
+            height: 1px; background: #dee2e6; margin: 2px 0;
         }
         
         /* ===== 이미지 뷰어 모달 ===== */
@@ -350,35 +79,28 @@
         }
         .page-nav-btn i { font-size: 1.5rem; }
         
+        /* ★ 이미지 줌 관련 */
         #imageViewerImg {
             max-width: 100%; height: auto;
             transform-origin: center center;
             will-change: transform;
             user-select: none;
             -webkit-user-drag: none;
-            transition: transform 0.25s ease;
         }
         
-        /* 뷰어 토글 버튼 (회전/Fit/전체화면) */
-        .viewer-toggle-btn {
-            background: transparent;
-            border: 1px solid #dee2e6;
-            border-radius: 6px;
-            padding: 4px 8px;
-            color: #555;
-            cursor: pointer;
-            font-size: 15px;
-            transition: background 0.15s;
+        /* ★ 전체화면 버튼 */
+        #imageFullscreenBtn {
+            background: transparent; border: 1px solid #dee2e6;
+            border-radius: 6px; padding: 4px 8px;
+            color: #555; cursor: pointer; font-size: 15px;
         }
-        .viewer-toggle-btn:hover { background: #f0f0f0; color: #333; }
-        .viewer-toggle-btn:active { background: #e0e0e0; }
+        #imageFullscreenBtn:hover { background: #f0f0f0; color: #333; }
         
         /* 과월호 선택 */
         .archive-select-wrapper {
             background: #34495e; padding: 8px 16px; border-bottom: 1px solid #2c3e50;
-            display: flex; align-items: center;
         }
-        .archive-select-wrapper label { color: #ecf0f1; font-size: 13px; margin-right: 10px; margin-bottom: 0; }
+        .archive-select-wrapper label { color: #ecf0f1; font-size: 13px; margin-right: 10px; }
         .archive-select-wrapper select {
             background: #2c3e50; border: 1px solid #4a6785; color: #fff;
             padding: 6px 12px; border-radius: 6px; font-size: 13px; min-width: 160px;
@@ -390,7 +112,6 @@
             background: #1a252f; padding: 8px 16px;
             display: flex; justify-content: center; gap: 24px;
             border-bottom: 1px solid #2c3e50;
-            flex-wrap: wrap;
         }
         .shortcut-item { display: flex; align-items: center; gap: 6px; color: #95a5a6; font-size: 12px; }
         .shortcut-key {
@@ -405,17 +126,21 @@
             .page-nav-btn i { font-size: 1.2rem !important; }
             .archive-select-wrapper { padding: 8px 12px; }
             .archive-select-wrapper select { min-width: 140px; font-size: 12px; }
+            .shortcut-guide { gap: 12px; padding: 6px 12px; }
+            .shortcut-item { font-size: 11px; }
+            .shortcut-key { font-size: 10px; padding: 2px 6px; }
+            /* ★ 모바일에서 단축키 안내 숨김 (핀치줌 안내로 대체) */
             .shortcut-guide { display: none; }
         }
         
+        /* ★ 모바일 핀치줌 안내 */
         .pinch-guide {
             background: #1a252f; padding: 7px 16px;
             display: none;
-            justify-content: center; gap: 16px;
+            justify-content: center; gap: 20px;
             border-bottom: 1px solid #2c3e50;
-            flex-wrap: wrap;
         }
-        .pinch-guide-item { display: flex; align-items: center; gap: 5px; color: #95a5a6; font-size: 11.5px; }
+        .pinch-guide-item { display: flex; align-items: center; gap: 5px; color: #95a5a6; font-size: 12px; }
         @media (max-width: 768px) {
             .pinch-guide { display: flex; }
         }
@@ -432,6 +157,72 @@
             text-shadow: 0 1px 1px rgba(0,0,0,0.2);
         }
         
+        .price-cell { font-size: 13px; white-space: nowrap; }
+        .price-cell .price-value { font-weight: 500; color: #2c3e50; }
+        
+        @media (min-width: 1200px) {
+            #resultsTable th, #resultsTable td { padding: 10px 8px; font-size: 14px; }
+        }
+        
+        /* ===== 모바일/태블릿 카드 레이아웃 ===== */
+        @media (max-width: 991px) {
+            .table-responsive { overflow-x: visible; }
+            #resultsTable thead { display: none; }
+            #resultsTable tbody { display: block; }
+            #resultsTable tbody tr {
+                display: flex; flex-wrap: wrap;
+                margin-bottom: 12px; border: 1px solid #dee2e6;
+                border-radius: 10px; background: white;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+                overflow: hidden; position: relative;
+            }
+            #resultsTable tbody td { border: none; padding: 0; box-sizing: border-box; }
+            #resultsTable tbody td:nth-child(1) { position: absolute; top: 10px; right: 10px; width: auto; z-index: 2; }
+            #resultsTable tbody td:nth-child(1) input[type="checkbox"] { width: 20px; height: 20px; }
+            #resultsTable tbody td:nth-child(2) { width: 100%; order: 1; background: linear-gradient(135deg,#667eea 0%,#764ba2 100%); color: white; font-weight: 600; font-size: 15px; padding: 12px 40px 12px 12px; }
+            #resultsTable tbody td:nth-child(2)::before { content: '🏢 '; }
+            #resultsTable tbody td:nth-child(3) { width: 100%; order: 2; padding: 8px 12px; font-size: 13px; color: #555; border-bottom: 1px solid #f0f0f0; }
+            #resultsTable tbody td:nth-child(3)::before { content: '📍 '; }
+            #resultsTable tbody td:nth-child(4) { display: none; }
+            #resultsTable tbody td:nth-child(5) { width: 50%; order: 3; padding: 8px 12px; font-size: 13px; }
+            #resultsTable tbody td:nth-child(5)::before { content: '층: '; font-weight: 600; color: #6c757d; }
+            #resultsTable tbody td:nth-child(11) { width: 50%; order: 4; padding: 8px 12px; font-size: 13px; text-align: right; }
+            #resultsTable tbody td:nth-child(6) { width: 50%; order: 5; padding: 8px 12px; font-size: 13px; background: #f8f9fa; border-top: 1px solid #e9ecef; }
+            #resultsTable tbody td:nth-child(6)::before { content: '전용 '; font-weight: 600; color: #6c757d; }
+            #resultsTable tbody td:nth-child(7) { width: 50%; order: 6; padding: 8px 12px; font-size: 13px; background: #f8f9fa; border-top: 1px solid #e9ecef; border-left: 1px solid #e9ecef; }
+            #resultsTable tbody td:nth-child(7)::before { content: '임대 '; font-weight: 600; color: #6c757d; }
+            #resultsTable tbody td:nth-child(8) { width: 33.33%; order: 7; padding: 10px 6px; font-size: 13px; text-align: center; border-top: 1px solid #e9ecef; }
+            #resultsTable tbody td:nth-child(8)::before { content: '보증금'; display: block; font-size: 10px; font-weight: 600; color: #e74c3c; margin-bottom: 3px; }
+            #resultsTable tbody td:nth-child(9) { width: 33.33%; order: 8; padding: 10px 6px; font-size: 13px; text-align: center; border-top: 1px solid #e9ecef; border-left: 1px solid #e9ecef; }
+            #resultsTable tbody td:nth-child(9)::before { content: '임대료'; display: block; font-size: 10px; font-weight: 600; color: #3498db; margin-bottom: 3px; }
+            #resultsTable tbody td:nth-child(10) { width: 33.34%; order: 9; padding: 10px 6px; font-size: 13px; text-align: center; border-top: 1px solid #e9ecef; border-left: 1px solid #e9ecef; }
+            #resultsTable tbody td:nth-child(10)::before { content: '관리비'; display: block; font-size: 10px; font-weight: 600; color: #27ae60; margin-bottom: 3px; }
+            #resultsTable tbody td:nth-child(12) { width: 100%; order: 10; padding: 10px 12px; background: #f8f9fa; border-top: 1px solid #e9ecef; text-align: right; }
+            #resultsTable tbody td:nth-child(12) .btn { font-size: 12px; padding: 6px 12px; }
+            #resultsTable tbody tr td[colspan] { width: 100% !important; display: flex !important; justify-content: center; align-items: center; flex-direction: column; text-align: center !important; padding: 40px 20px !important; }
+        }
+        
+        @media (min-width: 768px) and (max-width: 991px) {
+            #resultsTable tbody td:nth-child(2) { font-size: 16px; padding: 14px 50px 14px 14px; }
+            #resultsTable tbody td:nth-child(4) { display: block; width: 100%; order: 2; padding: 6px 12px; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0; }
+            #resultsTable tbody td:nth-child(4)::before { content: '🚇 '; }
+            #resultsTable tbody td:nth-child(3) { order: 3; border-bottom: none; }
+            #resultsTable tbody td:nth-child(5) { order: 4; } #resultsTable tbody td:nth-child(11) { order: 5; }
+            #resultsTable tbody td:nth-child(6) { order: 6; } #resultsTable tbody td:nth-child(7) { order: 7; }
+            #resultsTable tbody td:nth-child(8) { order: 8; } #resultsTable tbody td:nth-child(9) { order: 9; }
+            #resultsTable tbody td:nth-child(10) { order: 10; } #resultsTable tbody td:nth-child(12) { order: 11; }
+        }
+        
+        @media (max-width: 375px) {
+            #resultsTable tbody td:nth-child(2) { font-size: 14px; padding: 10px 38px 10px 10px; }
+            #resultsTable tbody td:nth-child(3) { font-size: 12px; padding: 6px 10px; }
+            #resultsTable tbody td:nth-child(5), #resultsTable tbody td:nth-child(11) { font-size: 12px; padding: 6px 10px; }
+            #resultsTable tbody td:nth-child(6), #resultsTable tbody td:nth-child(7) { font-size: 12px; padding: 6px 10px; }
+            #resultsTable tbody td:nth-child(8), #resultsTable tbody td:nth-child(9), #resultsTable tbody td:nth-child(10) { font-size: 11px; padding: 8px 4px; }
+            #resultsTable tbody td:nth-child(8)::before, #resultsTable tbody td:nth-child(9)::before, #resultsTable tbody td:nth-child(10)::before { font-size: 9px; }
+            #resultsTable tbody td:nth-child(12) .btn { font-size: 11px; padding: 5px 10px; }
+        }
+        
         @media (max-width: 768px) {
             .card-title { font-size: 18px; }
             .search-input input, .search-input select { font-size: 16px; }
@@ -442,18 +233,6 @@
             .pagination .page-link { padding: 6px 10px; font-size: 14px; }
             .suggestions { max-height: 250px; font-size: 15px; }
             .suggestion-item { padding: 12px 14px; }
-        }
-        
-        /* 지도 모달 - 높이 확장 */
-        #mapModal .modal-dialog { max-width: 1140px; }
-        #mapContainer {
-            width: 100%;
-            height: 78vh;
-            min-height: 520px;
-        }
-        @media (max-width: 768px) {
-            #mapContainer { height: 80vh; min-height: 480px; }
-            #mapModal .modal-dialog { margin: 0.3rem; }
         }
     </style>
 </head>
@@ -544,7 +323,7 @@
                             
                             <div class="col-md-10 search-input d-none" id="complexSearch">
                                 <div class="alert alert-info">
-                                    <i class="bi bi-info-circle"></i> 복합검색에서는 모든 검색 조건을 함께 사용할 수 있습니다. 면적 조건 매칭 시 카드 최상단에 강조 표시됩니다.
+                                    <i class="bi bi-info-circle"></i> 복합검색에서는 모든 검색 조건을 함께 사용할 수 있습니다.
                                 </div>
                             </div>
                         </div>
@@ -604,7 +383,7 @@
                         </div>
                         
                         <div class="table-responsive">
-                            <table class="table align-middle" id="resultsTable">
+                            <table class="table table-hover align-middle" id="resultsTable">
                                 <thead class="table-light">
                                     <tr>
                                         <th>선택</th>
@@ -649,16 +428,8 @@
                     <h5 class="modal-title" id="imageViewerTitle">임대안내문</h5>
                     <div class="ms-auto me-2 d-flex align-items-center gap-2">
                         <span class="badge bg-secondary" id="imageViewerPageInfo">페이지 1</span>
-                        <!-- ★ 회전 버튼 -->
-                        <button id="imageRotateBtn" class="viewer-toggle-btn" title="90도 회전 (R)">
-                            <i class="bi bi-arrow-clockwise"></i>
-                        </button>
-                        <!-- ★ Fit 모드 토글 -->
-                        <button id="imageFitBtn" class="viewer-toggle-btn" title="전체 맞춤 (F)">
-                            <i class="bi bi-arrows-expand"></i>
-                        </button>
-                        <!-- 전체화면 -->
-                        <button id="imageFullscreenBtn" class="viewer-toggle-btn" title="전체화면">
+                        <!-- ★ 전체화면 버튼 -->
+                        <button id="imageFullscreenBtn" title="전체화면">
                             <i class="bi bi-fullscreen"></i>
                         </button>
                     </div>
@@ -673,47 +444,39 @@
                         <span>페이지 이동</span>
                     </div>
                     <div class="shortcut-item">
-                        <span class="shortcut-key">R</span>
-                        <span>회전</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <span class="shortcut-key">F</span>
-                        <span>맞춤 모드</span>
-                    </div>
-                    <div class="shortcut-item">
                         <span class="shortcut-key">Esc</span>
                         <span>전체화면 종료</span>
                     </div>
                     <div class="shortcut-item">
                         <span class="shortcut-key">더블클릭</span>
-                        <span>확대/축소</span>
+                        <span>이미지 확대/축소</span>
                     </div>
                 </div>
                 
-                <!-- 모바일 터치 안내 -->
+                <!-- ★ 모바일 터치 안내 -->
                 <div class="pinch-guide">
                     <div class="pinch-guide-item">
-                        <i class="bi bi-arrows-angle-expand"></i>
-                        <span>핀치/더블탭으로 줌</span>
+                        <i class="bi bi-arrows-angle-expand" style="color:#95a5a6;"></i>
+                        <span>핀치로 확대/축소</span>
                     </div>
                     <div class="pinch-guide-item">
-                        <i class="bi bi-arrow-clockwise"></i>
-                        <span>회전 버튼 사용</span>
+                        <i class="bi bi-hand-index-thumb" style="color:#95a5a6;"></i>
+                        <span>두 번 탭으로 줌</span>
                     </div>
                     <div class="pinch-guide-item">
-                        <i class="bi bi-arrows-expand"></i>
-                        <span>맞춤 모드 전환</span>
+                        <i class="bi bi-arrow-left-right" style="color:#95a5a6;"></i>
+                        <span>버튼으로 페이지 이동</span>
                     </div>
                 </div>
                 
-                <!-- 과월호(이전 호수) 선택 -->
-                <div class="archive-select-wrapper d-none" id="archiveSelectContainer">
-                    <label><i class="bi bi-calendar3"></i> 이전 호수:</label>
+                <!-- 과월호 선택 -->
+                <div class="archive-select-wrapper d-flex align-items-center d-none" id="archiveSelectContainer">
+                    <label><i class="bi bi-calendar3"></i> 과월호:</label>
                     <select id="archiveSelect"></select>
                 </div>
                 
                 <div class="modal-body text-center p-0 position-relative"
-                     style="max-height:80vh; min-height:60vh; overflow:auto; background:#1a1a1a; display:flex; align-items:center; justify-content:center;">
+                     style="max-height:80vh; overflow:auto; background:#1a1a1a;">
                     <button class="btn page-nav-btn position-absolute start-0 top-50 translate-middle-y ms-3"
                             id="prevPageBtn" title="이전 페이지 (←)">
                         <i class="bi bi-chevron-left"></i>
@@ -739,16 +502,16 @@
         </div>
     </div>
 
-    <!-- Map Modal (높이 확장) -->
+    <!-- Map Modal -->
     <div class="modal fade" id="mapModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-header py-2">
+                <div class="modal-header">
                     <h5 class="modal-title" id="mapModalTitle">빌딩 위치</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-0">
-                    <div id="mapContainer"></div>
+                    <div id="mapContainer" style="width:100%; height:500px;"></div>
                 </div>
             </div>
         </div>
