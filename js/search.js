@@ -597,10 +597,13 @@ class LeasingSearchApp {
                         data-bs-toggle="collapse" data-bs-target="#${collapseId}"
                         aria-expanded="false" aria-controls="${collapseId}">
                     <span class="toggle-text-open">
-                        <i class="bi bi-chevron-down"></i> ${restRows.length}개 층 더보기
+                        <span class="toggle-count-badge">${restRows.length}</span>
+                        <span class="toggle-label">개 층 더보기</span>
+                        <i class="bi bi-chevron-down toggle-chevron"></i>
                     </span>
                     <span class="toggle-text-close">
-                        <i class="bi bi-chevron-up"></i> 접기
+                        <i class="bi bi-chevron-up toggle-chevron"></i>
+                        <span class="toggle-label">접기</span>
                     </span>
                 </button>
             ` : ''}
